@@ -37,6 +37,8 @@ h1 {
   letter-spacing: -0.02em;
 }
 .lead { margin: 0 0 18px; font-size: 0.92rem; color: var(--muted); max-width: 720px; }
+.lead a { color: var(--accent); font-weight: 500; text-decoration: none; }
+.lead a:hover { text-decoration: underline; }
 
 .panel {
   background: var(--surface);
@@ -127,6 +129,7 @@ td a { word-break: break-all; color: var(--accent); }
     <h1>STL 모델 · GitHub Pages</h1>
     <p class="lead">
       이 페이지는 Cloudflare Worker 없이 정적 사이트만 사용합니다. 모델 추가·삭제는 Git으로 저장소에 반영하면 됩니다.
+      루트 주소만 열면 이 페이지가 아니라 <a href="../">3D 뷰어</a>가 열립니다.
     </p>
 
     <div class="panel">
