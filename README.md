@@ -7,7 +7,7 @@
 
 | 구분 | 내용 |
 |------|------|
-| Pages `admin/index.html` | 드롭존·미리보기·업로드 버튼. `<meta name="worker-api-base">`로 Worker 주소 지정. |
+| Pages `admin/index.html` | 드롭존·미리보기·업로드. **저장 이름**을 바꿔 GitHub·뷰어(`?model=`)용 파일명을 지정할 수 있음. `<meta name="worker-api-base">`로 Worker 주소 지정. |
 | Worker `worker.js` | `POST /upload`, `GET /list`, `DELETE /delete`, records/tools 등. **비밀번호 로그인 없음.** |
 | Worker `/admin` 접속 시 | GitHub Pages의 `/admin/` 으로 리다이렉트 |
 

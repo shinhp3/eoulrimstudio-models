@@ -166,16 +166,44 @@ h1 {
 .pending-list { list-style: none; margin: 0; padding: 0; }
 .pending-list li {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
-  padding: 8px 0;
+  padding: 10px 0;
   border-bottom: 1px solid var(--border);
   font-size: 0.88rem;
 }
 .pending-list li:last-child { border-bottom: none; }
 .pending-list .fname { word-break: break-all; }
 .pending-list .fmeta { font-size: 0.78rem; color: var(--muted); flex-shrink: 0; }
+.pending-list .slug-row {
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-width: min(100%, 320px);
+}
+.pending-list .slug-row label {
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: var(--muted);
+}
+.pending-list .slug-input {
+  font: inherit;
+  font-size: 0.82rem;
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  width: 100%;
+}
+.pending-list .slug-input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+.pending-list .slug-hint {
+  font-size: 0.72rem;
+  color: var(--muted);
+}
 .btn-mini {
   font-size: 0.78rem;
   padding: 4px 10px;
@@ -328,7 +356,7 @@ td a:hover { text-decoration: underline; }
       <div class="preview-viewport">
         <div id="preview-canvas-host" class="preview-canvas-host"></div>
       </div>
-      <p class="preview-hint">대기 목록의 <strong>첫 번째</strong> 파일이 표시됩니다. 드래그로 회전 · 휠로 줌</p>
+      <p class="preview-hint">대기 목록의 <strong>첫 번째</strong> 파일이 표시됩니다. 드래그로 회전 · 휠로 줌. 아래 목록에서 <strong>저장 이름</strong>을 바꾸면 GitHub·뷰어 주소(<code>?model=</code>)에 그 이름이 쓰입니다.</p>
     </div>
 
     <div class="row-actions">
@@ -419,6 +447,7 @@ td a:hover { text-decoration: underline; }
     document.getElementById("link-repo-root").href =
       "https://github.com/" + ghRepo.trim() + "/tree/HEAD/models";
 
+    /** @type {{ file: File, slug: string }[]} */
     let pendingFiles = [];
     let lastViewerUrl = "";
 
@@ -467,6 +496,19 @@ td a:hover { text-decoration: underline; }
       if (!lower.endsWith(".stl")) return null;
       const base = name.slice(0, -4);
       if (!/^[a-zA-Z0-9._-]+$/.test(base)) return null;
+      return base + ".stl";
+    }
+
+    /** Worker와 동일: 저장 파일명(베이스) 규칙 */
+    function isValidSlugBase(base) {
+      return /^[a-zA-Z0-9._-]+$/.test(String(base).trim());
+    }
+
+    function slugToStlFilename(slugInput) {
+      const base = String(slugInput || "")
+        .trim()
+        .replace(/\.stl$/i, "");
+      if (!base || !isValidSlugBase(base)) return null;
       return base + ".stl";
     }
 
@@ -673,12 +715,12 @@ td a:hover { text-decoration: underline; }
 
     async function loadPreviewFromFirstPending() {
       const first = pendingFiles[0];
-      if (!first || !normalizeUploadName(first.name)) {
+      if (!first || !normalizeUploadName(first.file.name)) {
         destroyPreviewGl();
         return;
       }
       await ensurePreviewGl();
-      const buf = await first.arrayBuffer();
+      const buf = await first.file.arrayBuffer();
       const loader = new STLLoader();
       const geometry = loader.parse(buf);
       geometry.computeVertexNormals();
@@ -694,12 +736,18 @@ td a:hover { text-decoration: underline; }
       fitCameraToMesh(preview.mesh);
     }
 
-    async function uploadStlFile(file) {
-      const safeName = normalizeUploadName(file.name);
+    async function uploadStlFile(item) {
+      const safeName = slugToStlFilename(item.slug);
       if (!safeName) {
-        throw new Error("허용되지 않는 파일명입니다(영문·숫자·._- 만): " + file.name);
+        throw new Error(
+          "저장 이름이 올바르지 않습니다. 영문·숫자·._- 만 사용하고 확장자는 생략해도 됩니다: " +
+            item.slug
+        );
       }
-      const buf = await file.arrayBuffer();
+      if (!normalizeUploadName(item.file.name)) {
+        throw new Error("원본은 .stl 이고 파일명 규칙을 만족해야 합니다: " + item.file.name);
+      }
+      const buf = await item.file.arrayBuffer();
       const content = arrayBufferToBase64(buf);
 
       const res = await fetch(workerEndpoint("/upload"), {
@@ -736,21 +784,69 @@ td a:hover { text-decoration: underline; }
       pendingPanel.hidden = false;
       btnUpload.disabled = false;
       btnClearPending.disabled = false;
-      pendingFiles.forEach((file) => {
+      pendingFiles.forEach((item, idx) => {
         const li = document.createElement("li");
         const left = document.createElement("div");
-        left.innerHTML =
-          '<div class="fname">' +
-          escapeHtml(file.name) +
-          '</div><div class="fmeta">' +
-          formatBytes(file.size) +
-          "</div>";
+        left.style.flex = "1";
+        left.style.minWidth = "0";
+
+        const title = document.createElement("div");
+        title.className = "fname";
+        title.textContent = item.file.name;
+
+        const meta = document.createElement("div");
+        meta.className = "fmeta";
+        meta.textContent = formatBytes(item.file.size);
+
+        const slugRow = document.createElement("div");
+        slugRow.className = "slug-row";
+
+        const lab = document.createElement("label");
+        const inpId = "pending-slug-" + idx;
+        lab.htmlFor = inpId;
+        lab.textContent = "저장 이름 · 뷰어 주소용";
+
+        const inp = document.createElement("input");
+        inp.id = inpId;
+        inp.type = "text";
+        inp.className = "slug-input";
+        inp.autocomplete = "off";
+        inp.spellcheck = false;
+        inp.value = item.slug;
+        inp.placeholder = "예: my_product_v2";
+
+        const hint = document.createElement("div");
+        hint.className = "slug-hint";
+        function syncSlugHint() {
+          const fn = slugToStlFilename(inp.value);
+          const rawBase = String(inp.value || "").trim().replace(/\.stl$/i, "");
+          hint.textContent =
+            "→ GitHub: models/" + (fn || "(유효한 이름 필요).stl") + " · 뷰어: ?model=" + (fn ? rawBase : "…");
+        }
+        syncSlugHint();
+
+        inp.addEventListener("input", () => {
+          item.slug = inp.value;
+          syncSlugHint();
+        });
+        inp.addEventListener("change", () => {
+          loadPreviewFromFirstPending().catch(() => {});
+        });
+
+        slugRow.appendChild(lab);
+        slugRow.appendChild(inp);
+        slugRow.appendChild(hint);
+
+        left.appendChild(title);
+        left.appendChild(meta);
+        left.appendChild(slugRow);
+
         const rm = document.createElement("button");
         rm.type = "button";
         rm.className = "btn btn-mini btn-danger";
         rm.textContent = "제거";
         rm.addEventListener("click", () => {
-          pendingFiles = pendingFiles.filter((f) => f !== file);
+          pendingFiles = pendingFiles.filter((x) => x !== item);
           renderPending();
           loadPreviewFromFirstPending().catch(() => {});
         });
@@ -759,14 +855,6 @@ td a:hover { text-decoration: underline; }
         pendingList.appendChild(li);
       });
       loadPreviewFromFirstPending().catch((e) => console.error(e));
-    }
-
-    function escapeHtml(s) {
-      return String(s)
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;");
     }
 
     function formatBytes(n) {
@@ -798,12 +886,19 @@ td a:hover { text-decoration: underline; }
         return;
       }
       clearError();
-      const names = new Set(pendingFiles.map((f) => f.name));
+      const names = new Set(pendingFiles.map((x) => x.file.name));
       for (const f of incoming) {
-        if (!names.has(f.name)) {
-          pendingFiles.push(f);
-          names.add(f.name);
+        if (names.has(f.name)) continue;
+        const normalized = normalizeUploadName(f.name);
+        if (!normalized) {
+          showError(
+            "원본 파일명 규칙에 맞지 않습니다(영문·숫자·._- 만): " + f.name + " — 다른 이름으로 저장한 뒤 다시 추가하세요."
+          );
+          continue;
         }
+        const slug = normalized.slice(0, -4);
+        pendingFiles.push({ file: f, slug });
+        names.add(f.name);
       }
       renderPending();
     }
@@ -844,6 +939,20 @@ td a:hover { text-decoration: underline; }
       if (pendingFiles.length === 0) return;
 
       const files = pendingFiles.slice();
+      const resolvedNames = [];
+      for (const item of files) {
+        const fn = slugToStlFilename(item.slug);
+        if (!fn) {
+          showError("저장 이름이 올바르지 않습니다(영문·숫자·._- 만): " + item.slug);
+          return;
+        }
+        resolvedNames.push(fn);
+      }
+      if (new Set(resolvedNames).size !== resolvedNames.length) {
+        showError("대기 목록에서 저장 이름(확장자 제외 기준)이 서로 겹칩니다.");
+        return;
+      }
+
       let lastUrl = "";
       try {
         for (let i = 0; i < files.length; i++) {
