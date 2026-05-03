@@ -1948,9 +1948,6 @@ async function handleUpload(request, env) {
 
 async function handleList(env, request) {
   try {
-    if (!(await requireAdminSession(request, env))) {
-      return jsonResponse({ success: false, error: "인증이 필요합니다." }, 401);
-    }
     const { token, username, repo } = requireEnv(env);
     const pathUrl =
       GITHUB_API +
