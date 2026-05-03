@@ -350,18 +350,7 @@ td a:hover { text-decoration: underline; }
   </div>
 
   <div class="wrap">
-    <span class="badge">GitHub Pages</span>
-    <h1>STL 업로드</h1>
-    <p class="lead">
-      이 페이지는 저장소의 정적 파일입니다. 업로드·목록·삭제는
-      <code>&lt;meta name="worker-api-base"&gt;</code>에 지정한 Cloudflare Worker로 전달됩니다.
-      공개 뷰어는 <a href="../">루트 뷰어</a>입니다.
-    </p>
-
-    <div class="warn-box">
-      <strong>비밀번호 없음:</strong> Worker URL이 노출되면 누구나 업로드·삭제할 수 있습니다. Worker 주소는 가능한 한 비공개로 두고,
-      필요하면 나중에 Worker에 공유 비밀 헤더 검증 등을 추가하세요. Cloudflare 대시보드의 <code>ADMIN_PASSWORD</code> 시크릿은 더 이상 사용하지 않아도 됩니다.
-    </div>
+    <h1>STL 업로드 · 관리자용</h1>
 
     <div id="err-toast" class="err-toast" role="alert"></div>
 
@@ -373,7 +362,7 @@ td a:hover { text-decoration: underline; }
       aria-label="STL 파일을 여기에 놓거나 클릭하여 선택"
     >
       <strong>STL을 여기에 드롭</strong>
-      <span>또는 클릭하여 선택 · 여러 파일 가능 (.stl)</span>
+      <span>또는 클릭하여 선택 (.stl)</span>
     </div>
     <input type="file" id="file-input" accept=".stl,.STL" multiple hidden />
 
@@ -382,7 +371,6 @@ td a:hover { text-decoration: underline; }
       <div class="preview-viewport">
         <div id="preview-canvas-host" class="preview-canvas-host"></div>
       </div>
-      <p class="preview-hint">대기 목록의 <strong>첫 번째</strong> 파일이 표시됩니다. 드래그로 회전 · 휠로 줌. 아래 목록에서 <strong>저장 이름</strong>을 바꾸면 GitHub·뷰어 주소(<code>?model=</code>)에 그 이름이 쓰입니다.</p>
     </div>
 
     <div class="row-actions">
