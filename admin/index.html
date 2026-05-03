@@ -261,25 +261,236 @@ h1 {
   color: #312e81;
   letter-spacing: -0.01em;
 }
-.pending-list .slug-input {
+.pending-list .slug-field .slug-rule-caption {
+  margin: 4px 0 0;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #4c1d95;
+  opacity: 0.92;
+  line-height: 1.35;
+}
+.slug-input-row {
+  width: 100%;
+}
+/* 인풋 + 업로드를 하나의 흰 필드 안에 배치 */
+.slug-input-shell {
+  display: flex;
+  align-items: stretch;
+  width: 100%;
+  min-height: 48px;
+  background: #fff;
+  border: 2px solid #6366f1;
+  border-radius: 10px;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+.slug-input-shell:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 4px rgba(47, 107, 255, 0.25);
+}
+.pending-list .slug-input-shell:has(.slug-input--invalid) {
+  border-color: #dc2626;
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.15);
+}
+.pending-list .slug-input-shell:has(.slug-input--invalid):focus-within {
+  border-color: #dc2626;
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.2);
+}
+.pending-list .slug-input-shell .slug-input {
+  flex: 1;
+  min-width: 0;
+  width: auto;
   font: inherit;
   font-size: 1rem;
   font-weight: 600;
   padding: 12px 14px;
-  border: 2px solid #6366f1;
-  border-radius: 10px;
-  width: 100%;
-  background: #fff;
+  border: none;
+  border-radius: 0;
+  background: transparent;
   color: #0f172a;
+  box-shadow: none !important;
+}
+.pending-list .slug-input-shell .slug-input:focus {
+  outline: none;
+}
+.pending-list .slug-input-shell .btn-upload-row {
+  flex-shrink: 0;
+  align-self: stretch;
+  margin: 0;
+  padding: 12px 16px !important;
+  font-size: 0.88rem !important;
+  font-weight: 600 !important;
+  white-space: nowrap;
+  border: none !important;
+  border-radius: 0 !important;
+  border-left: 1px solid rgba(255, 255, 255, 0.22) !important;
+  background: #1e40af !important;
+  color: #ffffff !important;
+}
+.pending-list .slug-input-shell .btn-upload-row:hover:not(:disabled) {
+  background: #2563eb !important;
+  color: #ffffff !important;
+}
+.pending-list .slug-input-shell .btn-upload-row:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.slug-invalid-msg {
+  display: none;
+  margin: 0;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #b91c1c;
+  line-height: 1.45;
+  padding: 8px 10px;
+  background: #fef2f2;
+  border-radius: 8px;
+  border: 1px solid #fecaca;
+}
+.slug-invalid-msg.slug-invalid-msg--show {
+  display: block;
+}
+.slug-dup-info {
+  display: none;
+  margin: 0;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #92400e;
+  line-height: 1.45;
+  padding: 8px 10px;
+  background: #fffbeb;
+  border-radius: 8px;
+  border: 1px solid #fcd34d;
+}
+.slug-dup-info.slug-dup-info--show {
+  display: block !important;
+  visibility: visible;
+}
+/* 중복 안내: 슬러그 카드 맨 아래에서 잘 보이도록 */
+.pending-list .slug-field .slug-dup-info.slug-dup-info--show {
+  margin-top: 6px;
+}
+
+/* 덮어쓰기 확인 모달 */
+.overwrite-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  padding-bottom: max(20px, env(safe-area-inset-bottom));
+  box-sizing: border-box;
+}
+.overwrite-modal:not(.overwrite-modal--open) {
+  display: none !important;
+}
+.overwrite-modal.overwrite-modal--open {
+  display: flex !important;
+}
+.overwrite-modal__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.58);
+  cursor: pointer;
+}
+.overwrite-modal__dialog {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 460px;
+  max-height: min(72vh, 520px);
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  box-shadow: 0 24px 48px rgba(15, 23, 42, 0.28);
+  overflow: hidden;
+}
+.overwrite-modal__title {
+  margin: 0;
+  padding: 20px 22px 8px;
+  font-size: 1.12rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text);
+}
+.overwrite-modal__lead {
+  margin: 0;
+  padding: 0 22px 12px;
+  font-size: 0.88rem;
+  color: var(--muted);
+  line-height: 1.45;
+}
+.overwrite-modal__body {
+  padding: 6px 22px 18px;
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
+}
+.overwrite-modal__item {
+  margin: 0 0 12px;
+  padding: 12px 14px;
+  font-size: 0.88rem;
+  line-height: 1.55;
+  font-weight: 500;
+  color: var(--text);
+  background: #fffbeb;
+  border: 1px solid #fcd34d;
+  border-radius: 10px;
+}
+.overwrite-modal__item:last-child {
+  margin-bottom: 0;
+}
+.overwrite-modal__item-num {
+  font-weight: 700;
+  color: #92400e;
+  margin-right: 6px;
+}
+.overwrite-modal__actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  padding: 16px 22px 18px;
+  border-top: 1px solid var(--border);
+  background: linear-gradient(180deg, #fafbfc 0%, #fff 100%);
+}
+.upload-confirm-modal__question {
+  margin: 0;
+  padding: 4px 22px 8px;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1.5;
+}
+.delete-confirm-modal__target {
+  margin: 0;
+  padding: 0 22px 14px;
+  font-size: 0.86rem;
+  font-weight: 500;
+  color: var(--muted);
+  word-break: break-all;
+  line-height: 1.45;
+}
+.delete-confirm-modal__target code {
+  font-size: 0.84em;
+  padding: 2px 6px;
+  background: var(--bg);
+  border-radius: 6px;
+  border: 1px solid var(--border);
+}
+@media (max-width: 480px) {
+  .pending-list .slug-input-shell .btn-upload-row {
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+    font-size: 0.85rem !important;
+  }
 }
 .pending-list .slug-input::placeholder {
   color: #94a3b8;
   font-weight: 400;
-}
-.pending-list .slug-input:focus {
-  outline: none;
-  border-color: var(--accent);
-  box-shadow: 0 0 0 4px rgba(47, 107, 255, 0.25);
 }
 .pending-list .slug-hint {
   font-size: 0.8rem;
@@ -574,6 +785,91 @@ table.remote-table {
     <p id="loading-text" class="loading-text">업로드 중…</p>
   </div>
 
+  <div
+    id="overwrite-modal"
+    class="overwrite-modal"
+    aria-hidden="true"
+  >
+    <div class="overwrite-modal__backdrop" id="overwrite-modal-backdrop"></div>
+    <div
+      class="overwrite-modal__dialog"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="overwrite-modal-title"
+    >
+      <h3 id="overwrite-modal-title" class="overwrite-modal__title">
+        덮어쓰기 안내
+      </h3>
+      <p class="overwrite-modal__lead">
+        아래 내용을 확인한 뒤 진행해 주세요.
+      </p>
+      <div id="overwrite-modal-body" class="overwrite-modal__body"></div>
+      <div class="overwrite-modal__actions">
+        <button type="button" class="btn" id="overwrite-modal-cancel">
+          취소
+        </button>
+        <button type="button" class="btn btn-primary" id="overwrite-modal-confirm">
+          업로드 진행
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div
+    id="upload-confirm-modal"
+    class="overwrite-modal"
+    aria-hidden="true"
+  >
+    <div class="overwrite-modal__backdrop" id="upload-confirm-backdrop"></div>
+    <div
+      class="overwrite-modal__dialog"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="upload-confirm-title"
+    >
+      <h3 id="upload-confirm-title" class="overwrite-modal__title">업로드</h3>
+      <p id="upload-confirm-message" class="upload-confirm-modal__question">
+        업로드 하시겠습니까?
+      </p>
+      <div class="overwrite-modal__actions">
+        <button type="button" class="btn" id="upload-confirm-cancel">
+          취소
+        </button>
+        <button type="button" class="btn btn-primary" id="upload-confirm-confirm">
+          업로드
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div
+    id="delete-confirm-modal"
+    class="overwrite-modal"
+    aria-hidden="true"
+  >
+    <div class="overwrite-modal__backdrop" id="delete-confirm-backdrop"></div>
+    <div
+      class="overwrite-modal__dialog"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="delete-confirm-title"
+    >
+      <h3 id="delete-confirm-title" class="overwrite-modal__title">삭제</h3>
+      <p id="delete-confirm-message" class="upload-confirm-modal__question">
+        삭제하시겠습니까?
+      </p>
+      <p id="delete-confirm-target" class="delete-confirm-modal__target"></p>
+      <div class="overwrite-modal__actions">
+        <button type="button" class="btn" id="delete-confirm-cancel">
+          취소
+        </button>
+        <button type="button" class="btn btn-danger" id="delete-confirm-confirm">
+          삭제
+        </button>
+      </div>
+    </div>
+  </div>
+
   <div class="wrap">
     <h1>STL 업로드 · 관리자용</h1>
 
@@ -599,7 +895,6 @@ table.remote-table {
     </div>
 
     <div class="row-actions">
-      <button type="button" id="btn-upload" class="btn btn-primary" disabled>업로드</button>
       <button type="button" id="btn-clear-pending" class="btn" disabled>대기 목록 비우기</button>
       <button type="button" id="btn-refresh-list" class="btn">목록 새로고침</button>
     </div>
@@ -695,6 +990,8 @@ table.remote-table {
 
     /** @type {{ file: File, slug: string }[]} */
     let pendingFiles = [];
+    /** Worker 목록과 동일한 파일명(대소문자 유지) — 덮어쓰기 확인용 */
+    let remoteStlFilenames = new Set();
     let lastViewerUrl = "";
 
     let preview = {
@@ -711,7 +1008,6 @@ table.remote-table {
 
     const dropZone = document.getElementById("drop-zone");
     const fileInput = document.getElementById("file-input");
-    const btnUpload = document.getElementById("btn-upload");
     const btnClearPending = document.getElementById("btn-clear-pending");
     const btnRefreshList = document.getElementById("btn-refresh-list");
     const pendingPanel = document.getElementById("pending-panel");
@@ -759,6 +1055,288 @@ table.remote-table {
         .replace(/\.stl$/i, "");
       if (!base || !isValidSlugBase(base)) return null;
       return base + ".stl";
+    }
+
+    /** 대소문자 무시 비교용 (대기 중복·원격 덮어쓰기 안내) */
+    function stlLowerKey(fn) {
+      return String(fn || "").toLowerCase();
+    }
+
+    function countPendingWithSameStlName(resolvedFn) {
+      const key = stlLowerKey(resolvedFn);
+      return pendingFiles.filter((p) => {
+        const pf = slugToStlFilename(p.slug);
+        return pf && stlLowerKey(pf) === key;
+      }).length;
+    }
+
+    function remoteHasStlCaseInsensitive(resolvedFn) {
+      const key = stlLowerKey(resolvedFn);
+      for (const r of remoteStlFilenames) {
+        if (stlLowerKey(r) === key) return true;
+      }
+      return false;
+    }
+
+    function remoteFilenameMatchingCaseInsensitive(resolvedFn) {
+      const key = stlLowerKey(resolvedFn);
+      for (const r of remoteStlFilenames) {
+        if (stlLowerKey(r) === key) return r;
+      }
+      return resolvedFn;
+    }
+
+    /** 저장 이름 규칙 안내(Worker·GitHub 경로와 동일) */
+    function getSlugValidationIssue(slugInput) {
+      const trimmed = String(slugInput ?? "").trim();
+      const base = trimmed.replace(/\.stl$/i, "").trim();
+      if (!base) {
+        return {
+          ok: false,
+          code: "empty",
+          message: "저장 파일명을 입력하세요.",
+        };
+      }
+      const bad = base.match(/[^a-zA-Z0-9._-]/g);
+      if (bad) {
+        const shown = [...new Set(bad)]
+          .map((c) =>
+            c === " "
+              ? "공백"
+              : c === "\t"
+                ? "탭"
+                : "'" + c + "'"
+          )
+          .join(", ");
+        return {
+          ok: false,
+          code: "chars",
+          message:
+            "사용할 수 없는 문자: " +
+            shown +
+            ". 허용: 영문(A–Z, a–z), 숫자, 마침표(.), 밑줄(_), 하이픈(-)만 가능합니다.",
+        };
+      }
+      return { ok: true };
+    }
+
+    /** 업로드 전 확인 문구 수집 */
+    function collectOverwriteWarnings(itemsToUpload) {
+      const lines = [];
+      const seenKey = new Set();
+      for (const item of itemsToUpload) {
+        const fn = slugToStlFilename(item.slug);
+        if (!fn) continue;
+        const key = stlLowerKey(fn);
+        if (seenKey.has(key)) continue;
+        seenKey.add(key);
+
+        const samePending = countPendingWithSameStlName(fn);
+        if (samePending > 1) {
+          lines.push(
+            "저장 이름 \"" +
+              fn +
+              "\" 이(가) 대기 목록에 " +
+              samePending +
+              "번 들어 있습니다. 같은 저장소 파일을 차례로 덮어씁니다."
+          );
+        }
+        if (remoteHasStlCaseInsensitive(fn)) {
+          const onGit = remoteFilenameMatchingCaseInsensitive(fn);
+          lines.push(
+            "저장소(models/)에 이미 \"" +
+              onGit +
+              "\" 파일이 있습니다. 업로드하면 해당 STL이 새 파일로 덮어씌워집니다."
+          );
+        }
+      }
+      return lines;
+    }
+
+    function showOverwriteModal(warnLines) {
+      return new Promise((resolve) => {
+        const root = document.getElementById("overwrite-modal");
+        const bodyEl = document.getElementById("overwrite-modal-body");
+        const btnCancel = document.getElementById("overwrite-modal-cancel");
+        const btnConfirm = document.getElementById("overwrite-modal-confirm");
+        const backdrop = document.getElementById("overwrite-modal-backdrop");
+
+        bodyEl.innerHTML = "";
+        warnLines.forEach((line, i) => {
+          const p = document.createElement("p");
+          p.className = "overwrite-modal__item";
+          const num = document.createElement("span");
+          num.className = "overwrite-modal__item-num";
+          num.textContent = i + 1 + ".";
+          p.appendChild(num);
+          p.appendChild(document.createTextNode(" " + line));
+          bodyEl.appendChild(p);
+        });
+
+        root.classList.add("overwrite-modal--open");
+        root.setAttribute("aria-hidden", "false");
+        const prevOverflow = document.body.style.overflow;
+        document.body.style.overflow = "hidden";
+
+        let settled = false;
+        function finish(ok) {
+          if (settled) return;
+          settled = true;
+          root.classList.remove("overwrite-modal--open");
+          root.setAttribute("aria-hidden", "true");
+          document.body.style.overflow = prevOverflow;
+          backdrop.removeEventListener("click", onBackdrop);
+          btnCancel.removeEventListener("click", onCancel);
+          btnConfirm.removeEventListener("click", onConfirm);
+          document.removeEventListener("keydown", onKey);
+          resolve(ok);
+        }
+
+        function onCancel() {
+          finish(false);
+        }
+        function onConfirm() {
+          finish(true);
+        }
+        function onBackdrop(e) {
+          if (e.target === backdrop) finish(false);
+        }
+        function onKey(e) {
+          if (e.key === "Escape") {
+            e.preventDefault();
+            finish(false);
+          }
+        }
+
+        backdrop.addEventListener("click", onBackdrop);
+        btnCancel.addEventListener("click", onCancel);
+        btnConfirm.addEventListener("click", onConfirm);
+        document.addEventListener("keydown", onKey);
+
+        queueMicrotask(() => {
+          try {
+            btnConfirm.focus();
+          } catch (_) {}
+        });
+      });
+    }
+
+    function showUploadConfirmModal() {
+      return new Promise((resolve) => {
+        const root = document.getElementById("upload-confirm-modal");
+        const backdrop = document.getElementById("upload-confirm-backdrop");
+        const btnCancel = document.getElementById("upload-confirm-cancel");
+        const btnOk = document.getElementById("upload-confirm-confirm");
+
+        root.classList.add("overwrite-modal--open");
+        root.setAttribute("aria-hidden", "false");
+        const prevOverflow = document.body.style.overflow;
+        document.body.style.overflow = "hidden";
+
+        let settled = false;
+        function finish(ok) {
+          if (settled) return;
+          settled = true;
+          root.classList.remove("overwrite-modal--open");
+          root.setAttribute("aria-hidden", "true");
+          document.body.style.overflow = prevOverflow;
+          backdrop.removeEventListener("click", onBackdrop);
+          btnCancel.removeEventListener("click", onCancel);
+          btnOk.removeEventListener("click", onOk);
+          document.removeEventListener("keydown", onKey);
+          resolve(ok);
+        }
+
+        function onCancel() {
+          finish(false);
+        }
+        function onOk() {
+          finish(true);
+        }
+        function onBackdrop(e) {
+          if (e.target === backdrop) finish(false);
+        }
+        function onKey(e) {
+          if (e.key === "Escape") {
+            e.preventDefault();
+            finish(false);
+          }
+        }
+
+        backdrop.addEventListener("click", onBackdrop);
+        btnCancel.addEventListener("click", onCancel);
+        btnOk.addEventListener("click", onOk);
+        document.addEventListener("keydown", onKey);
+
+        queueMicrotask(() => {
+          try {
+            btnOk.focus();
+          } catch (_) {}
+        });
+      });
+    }
+
+    function showDeleteConfirmModal(filename) {
+      return new Promise((resolve) => {
+        const root = document.getElementById("delete-confirm-modal");
+        const backdrop = document.getElementById("delete-confirm-backdrop");
+        const btnCancel = document.getElementById("delete-confirm-cancel");
+        const btnOk = document.getElementById("delete-confirm-confirm");
+        const targetEl = document.getElementById("delete-confirm-target");
+
+        targetEl.innerHTML = "";
+        const label = document.createTextNode("대상: ");
+        const code = document.createElement("code");
+        code.textContent = "models/" + filename;
+        targetEl.appendChild(label);
+        targetEl.appendChild(code);
+
+        root.classList.add("overwrite-modal--open");
+        root.setAttribute("aria-hidden", "false");
+        const prevOverflow = document.body.style.overflow;
+        document.body.style.overflow = "hidden";
+
+        let settled = false;
+        function finish(ok) {
+          if (settled) return;
+          settled = true;
+          root.classList.remove("overwrite-modal--open");
+          root.setAttribute("aria-hidden", "true");
+          document.body.style.overflow = prevOverflow;
+          backdrop.removeEventListener("click", onBackdrop);
+          btnCancel.removeEventListener("click", onCancel);
+          btnOk.removeEventListener("click", onOk);
+          document.removeEventListener("keydown", onKey);
+          resolve(ok);
+        }
+
+        function onCancel() {
+          finish(false);
+        }
+        function onOk() {
+          finish(true);
+        }
+        function onBackdrop(e) {
+          if (e.target === backdrop) finish(false);
+        }
+        function onKey(e) {
+          if (e.key === "Escape") {
+            e.preventDefault();
+            finish(false);
+          }
+        }
+
+        backdrop.addEventListener("click", onBackdrop);
+        btnCancel.addEventListener("click", onCancel);
+        btnOk.addEventListener("click", onOk);
+        document.addEventListener("keydown", onKey);
+
+        queueMicrotask(() => {
+          try {
+            btnOk.focus();
+          } catch (_) {}
+        });
+      });
     }
 
     function arrayBufferToBase64(buffer) {
@@ -1038,17 +1616,115 @@ table.remote-table {
       });
     }
 
+    function refreshPendingSlugRowUi() {
+      const items = pendingList.querySelectorAll("li.pending-item");
+      pendingFiles.forEach((item, idx) => {
+        const li = items[idx];
+        if (!li) return;
+        const slugInvalid = li.querySelector(".slug-invalid-msg");
+        const dupInfo = li.querySelector(".slug-dup-info");
+        const btnRowUp = li.querySelector(".btn-upload-row");
+        const inp = li.querySelector(".slug-input");
+        const fn = slugToStlFilename(item.slug);
+        const v = getSlugValidationIssue(item.slug);
+
+        if (inp) {
+          inp.classList.toggle("slug-input--invalid", !v.ok);
+        }
+        if (slugInvalid) {
+          slugInvalid.classList.toggle("slug-invalid-msg--show", !v.ok);
+          slugInvalid.textContent = v.ok ? "" : v.message;
+        }
+        if (dupInfo && fn) {
+          const n = countPendingWithSameStlName(fn);
+          dupInfo.classList.toggle("slug-dup-info--show", n > 1);
+          dupInfo.textContent =
+            "저장 파일명이 중복됩니다. \"" +
+            fn +
+            "\" 이름이 대기 목록에 " +
+            n +
+            "번 들어 있습니다. 업로드하면 저장소의 같은 파일을 덮어씁니다. 업로드 버튼을 누르면 덮어쓰기 안내 창이 열립니다.";
+        } else if (dupInfo) {
+          dupInfo.classList.remove("slug-dup-info--show");
+        }
+        if (btnRowUp) {
+          btnRowUp.disabled = !fn;
+          btnRowUp.title = fn
+            ? "이 STL만 업로드합니다 (덮어쓰기 가능 시 확인)"
+            : "저장 이름 규칙을 만족해야 업로드할 수 있습니다.";
+        }
+      });
+    }
+
+    async function uploadPendingSubset(itemsToUpload) {
+      clearError();
+      if (!itemsToUpload.length) return;
+
+      const resolvedNames = [];
+      for (const item of itemsToUpload) {
+        const fn = slugToStlFilename(item.slug);
+        if (!fn) {
+          const v = getSlugValidationIssue(item.slug);
+          showError(v.ok ? "저장 이름을 확인해 주세요." : v.message);
+          return;
+        }
+        resolvedNames.push(fn);
+      }
+      if (new Set(resolvedNames).size !== resolvedNames.length) {
+        showError("한 번에 올리는 항목에 같은 저장 이름이 둘 이상 있습니다.");
+        return;
+      }
+
+      const okUpload = await showUploadConfirmModal();
+      if (!okUpload) return;
+
+      const warns = collectOverwriteWarnings(itemsToUpload);
+      if (warns.length > 0) {
+        const ok = await showOverwriteModal(warns);
+        if (!ok) return;
+      }
+
+      let lastUrl = "";
+      const metaWarnings = [];
+      try {
+        for (let i = 0; i < itemsToUpload.length; i++) {
+          setLoading(
+            true,
+            "업로드 중… (" + (i + 1) + "/" + itemsToUpload.length + ")"
+          );
+          const out = await uploadStlFile(itemsToUpload[i]);
+          lastUrl = out.url;
+          if (out.metaWarning) metaWarnings.push(out.metaWarning);
+        }
+        showResult(lastUrl);
+        if (metaWarnings.length) {
+          showError(
+            "STL은 업로드되었으나 업로드 시각 저장(meta.json)에 실패했습니다: " +
+              [...new Set(metaWarnings)].join(" · ")
+          );
+        }
+        const uploadedSet = new Set(itemsToUpload);
+        pendingFiles = pendingFiles.filter((x) => !uploadedSet.has(x));
+        renderPending();
+        await refreshRemoteList();
+        waitForModelsOnPages(resolvedNames).catch((e) => console.error(e));
+      } catch (e) {
+        console.error(e);
+        showError(e.message || String(e));
+      } finally {
+        setLoading(false);
+      }
+    }
+
     function renderPending() {
       pendingList.innerHTML = "";
       if (pendingFiles.length === 0) {
         pendingPanel.hidden = true;
-        btnUpload.disabled = true;
         btnClearPending.disabled = true;
         destroyPreviewGl();
         return;
       }
       pendingPanel.hidden = false;
-      btnUpload.disabled = false;
       btnClearPending.disabled = false;
       pendingFiles.forEach((item, idx) => {
         const li = document.createElement("li");
@@ -1090,6 +1766,16 @@ table.remote-table {
         const inpId = "pending-slug-" + idx;
         lab.htmlFor = inpId;
         lab.textContent = "저장 파일명 (링크에 쓰이는 이름)";
+        const slugCaption = document.createElement("p");
+        slugCaption.className = "slug-rule-caption";
+        slugCaption.textContent =
+          "허용: 영문·숫자·._- 만 (공백·한글·기타 특수기호 불가). 확장자 .stl 은 적어도 되고 안 적어도 됩니다.";
+
+        const inpRow = document.createElement("div");
+        inpRow.className = "slug-input-row";
+
+        const slugShell = document.createElement("div");
+        slugShell.className = "slug-input-shell";
 
         const inp = document.createElement("input");
         inp.id = inpId;
@@ -1099,6 +1785,26 @@ table.remote-table {
         inp.spellcheck = false;
         inp.value = item.slug;
         inp.placeholder = "예: my_product_v2";
+
+        const btnRowUp = document.createElement("button");
+        btnRowUp.type = "button";
+        btnRowUp.className = "btn btn-primary btn-upload-row";
+        btnRowUp.textContent = "업로드";
+        const fnResolved = slugToStlFilename(item.slug);
+        btnRowUp.disabled = !fnResolved;
+        btnRowUp.title = fnResolved
+          ? "이 STL만 업로드합니다 (덮어쓰기 가능 시 확인)"
+          : "저장 이름 규칙을 만족해야 업로드할 수 있습니다.";
+        btnRowUp.addEventListener("click", () => {
+          uploadPendingSubset([item]).catch((e) => console.error(e));
+        });
+
+        const slugInvalid = document.createElement("div");
+        slugInvalid.className = "slug-invalid-msg";
+
+        const dupInfo = document.createElement("div");
+        dupInfo.className = "slug-dup-info";
+        dupInfo.setAttribute("role", "status");
 
         const hint = document.createElement("div");
         hint.className = "slug-hint";
@@ -1113,19 +1819,28 @@ table.remote-table {
         inp.addEventListener("input", () => {
           item.slug = inp.value;
           syncSlugHint();
+          refreshPendingSlugRowUi();
         });
         inp.addEventListener("change", () => {
           loadPreviewFromFirstPending().catch(() => {});
         });
 
+        slugShell.appendChild(inp);
+        slugShell.appendChild(btnRowUp);
+        inpRow.appendChild(slugShell);
+
         slugRow.appendChild(lab);
-        slugRow.appendChild(inp);
+        slugRow.appendChild(slugCaption);
+        slugRow.appendChild(inpRow);
+        slugRow.appendChild(slugInvalid);
         slugRow.appendChild(hint);
+        slugRow.appendChild(dupInfo);
 
         li.appendChild(head);
         li.appendChild(slugRow);
         pendingList.appendChild(li);
       });
+      refreshPendingSlugRowUi();
       loadPreviewFromFirstPending().catch((e) => console.error(e));
     }
 
@@ -1294,53 +2009,6 @@ table.remote-table {
       renderPending();
     });
 
-    btnUpload.addEventListener("click", async () => {
-      clearError();
-      if (pendingFiles.length === 0) return;
-
-      const files = pendingFiles.slice();
-      const resolvedNames = [];
-      for (const item of files) {
-        const fn = slugToStlFilename(item.slug);
-        if (!fn) {
-          showError("저장 이름이 올바르지 않습니다(영문·숫자·._- 만): " + item.slug);
-          return;
-        }
-        resolvedNames.push(fn);
-      }
-      if (new Set(resolvedNames).size !== resolvedNames.length) {
-        showError("대기 목록에서 저장 이름(확장자 제외 기준)이 서로 겹칩니다.");
-        return;
-      }
-
-      let lastUrl = "";
-      const metaWarnings = [];
-      try {
-        for (let i = 0; i < files.length; i++) {
-          setLoading(true, "업로드 중… (" + (i + 1) + "/" + files.length + ")");
-          const out = await uploadStlFile(files[i]);
-          lastUrl = out.url;
-          if (out.metaWarning) metaWarnings.push(out.metaWarning);
-        }
-        showResult(lastUrl);
-        if (metaWarnings.length) {
-          showError(
-            "STL은 업로드되었으나 업로드 시각 저장(meta.json)에 실패했습니다: " +
-              [...new Set(metaWarnings)].join(" · ")
-          );
-        }
-        pendingFiles = [];
-        renderPending();
-        await refreshRemoteList();
-        waitForModelsOnPages(resolvedNames).catch((e) => console.error(e));
-      } catch (e) {
-        console.error(e);
-        showError(e.message || String(e));
-      } finally {
-        setLoading(false);
-      }
-    });
-
     btnCopyUrl.addEventListener("click", async () => {
       if (!lastViewerUrl) return;
       try {
@@ -1379,7 +2047,8 @@ table.remote-table {
     });
 
     async function deleteRemoteFile(filename) {
-      if (!confirm("정말 삭제하시겠습니까?")) return;
+      const ok = await showDeleteConfirmModal(filename);
+      if (!ok) return;
       try {
         const res = await fetch(workerEndpoint("/delete"), {
           method: "DELETE",
@@ -1429,8 +2098,12 @@ table.remote-table {
         }
 
         const files = Array.isArray(data.files) ? data.files : [];
+        remoteStlFilenames = new Set(
+          files.map((f) => f.filename).filter(Boolean)
+        );
         remoteMeta.textContent = files.length + "개";
         if (files.length === 0) {
+          remoteStlFilenames = new Set();
           remoteTbody.innerHTML =
             '<tr class="empty-row"><td colspan="4">models/ 에 STL이 없습니다.</td></tr>';
           return;
@@ -1473,6 +2146,7 @@ table.remote-table {
           remoteTbody.appendChild(tr);
         }
       } catch (e) {
+        remoteStlFilenames = new Set();
         remoteTbody.innerHTML =
           '<tr class="empty-row"><td colspan="4">목록을 불러오지 못했습니다.</td></tr>';
         remoteMeta.textContent = "";
