@@ -3,7 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>STL 업로드 · 어울림 내부</title>
+  <!-- Pages 배포 후 목록 표시용: owner/repo 형식으로 이 저장소에 맞게 수정하세요. -->
+  <meta name="github-repo" content="shinhp3/eoulrimstudio-models" />
+  <title>모델 안내 · GitHub Pages</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600&display=swap" rel="stylesheet" />
@@ -16,8 +18,6 @@
   --muted: #6b7280;
   --accent: #2f6bff;
   --accent-dim: rgba(47, 107, 255, 0.12);
-  --danger: #b91c1c;
-  --danger-bg: #fef2f2;
   --radius: 12px;
 }
 * { box-sizing: border-box; }
@@ -27,290 +27,125 @@ body {
   font-family: "IBM Plex Sans KR", system-ui, sans-serif;
   background: var(--bg);
   color: var(--text);
-  line-height: 1.5;
+  line-height: 1.55;
 }
 .wrap { max-width: 920px; margin: 0 auto; padding: 24px 20px 56px; }
-.badge {
-  display: inline-block;
-  font-size: 0.72rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--muted);
-  margin-bottom: 8px;
-}
 h1 {
   font-size: 1.4rem;
   font-weight: 600;
   margin: 0 0 8px;
   letter-spacing: -0.02em;
 }
-.lead { margin: 0 0 20px; font-size: 0.9rem; color: var(--muted); max-width: 640px; }
+.lead { margin: 0 0 18px; font-size: 0.92rem; color: var(--muted); max-width: 720px; }
 
-.warn-box {
-  font-size: 0.82rem;
-  color: #92400e;
-  background: #fffbeb;
-  border: 1px solid #fde68a;
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 12px 14px;
-  margin-bottom: 20px;
-  line-height: 1.55;
+  padding: 16px 18px;
+  margin-bottom: 18px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
 }
-
-.drop-zone {
-  border: 2px dashed var(--border);
-  border-radius: var(--radius);
-  padding: 28px 20px;
-  text-align: center;
-  background: linear-gradient(160deg, #f0f4ff 0%, #e8edf8 100%);
-  cursor: pointer;
-  transition: border-color 0.15s, background 0.15s;
-  margin-bottom: 16px;
+.panel h2 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0 0 10px;
 }
-.drop-zone:hover, .drop-zone:focus-visible {
-  border-color: var(--accent);
-  background: var(--accent-dim);
-  outline: none;
+.panel p, .panel li { font-size: 0.88rem; color: var(--text); margin: 0 0 8px; }
+.panel ul { margin: 0; padding-left: 1.2rem; }
+.panel code {
+  font-size: 0.84em;
+  background: var(--bg);
+  padding: 2px 6px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
 }
-.drop-zone.dragover {
-  border-color: var(--accent);
-  background: var(--accent-dim);
-}
-.drop-zone strong { display: block; margin-bottom: 6px; font-size: 0.95rem; }
-.drop-zone span { font-size: 0.82rem; color: var(--muted); }
 
 .row-actions {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: 12px;
 }
 .btn {
   font: inherit;
   font-size: 0.88rem;
   font-weight: 500;
-  padding: 10px 18px;
+  padding: 9px 16px;
   border-radius: 10px;
   border: 1px solid var(--border);
   background: #fff;
   color: var(--text);
   cursor: pointer;
-  transition: border-color 0.15s, background 0.15s;
 }
 .btn:hover { border-color: var(--accent); color: var(--accent); }
-.btn:disabled { opacity: 0.45; cursor: not-allowed; }
 .btn-primary {
   border-color: var(--accent);
   background: var(--accent-dim);
   color: var(--accent);
 }
-.btn-primary:hover:not(:disabled) {
-  background: rgba(47, 107, 255, 0.22);
-}
-.btn-danger {
-  border-color: #fecaca;
-  background: var(--danger-bg);
-  color: var(--danger);
-}
-.btn-danger:hover:not(:disabled) {
-  border-color: var(--danger);
-}
 
-.pending-panel {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 14px 16px;
-  margin-bottom: 20px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
-}
-.pending-panel h2 {
-  font-size: 0.95rem;
-  font-weight: 600;
-  margin: 0 0 12px;
-}
-.pending-list { list-style: none; margin: 0; padding: 0; }
-.pending-list li {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 8px 0;
-  border-bottom: 1px solid var(--border);
-  font-size: 0.88rem;
-}
-.pending-list li:last-child { border-bottom: none; }
-.pending-list .fname { word-break: break-all; }
-.pending-list .fmeta { font-size: 0.78rem; color: var(--muted); flex-shrink: 0; }
-.btn-mini {
-  font-size: 0.78rem;
-  padding: 4px 10px;
-  border-radius: 8px;
-}
-
-.result-panel {
-  display: none;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 16px 18px;
-  margin-bottom: 24px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
-}
-.result-panel.visible { display: block; }
-.result-panel h2 { font-size: 0.95rem; margin: 0 0 12px; }
-.result-url {
-  display: block;
-  word-break: break-all;
-  font-size: 0.85rem;
-  padding: 12px 14px;
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  margin-bottom: 12px;
-  color: var(--accent);
-}
-.result-actions { display: flex; flex-wrap: wrap; gap: 8px; }
-.msg { font-size: 0.82rem; color: var(--muted); margin-top: 10px; }
-
-.loading-overlay {
-  display: none;
-  position: fixed;
-  inset: 0;
-  background: rgba(248, 249, 251, 0.85);
-  align-items: center;
-  justify-content: center;
-  z-index: 100;
-  flex-direction: column;
-  gap: 14px;
-}
-.loading-overlay.visible { display: flex; }
-.spinner {
-  width: 40px;
-  height: 40px;
-  border: 3px solid var(--border);
-  border-top-color: var(--accent);
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-}
-@keyframes spin { to { transform: rotate(360deg); } }
-.loading-text { font-size: 0.95rem; color: var(--muted); }
-
-.remote-panel {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  overflow: hidden;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
-}
-.remote-panel .head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  flex-wrap: wrap;
-  padding: 14px 16px;
-  border-bottom: 1px solid var(--border);
-  background: rgba(248, 249, 251, 0.9);
-}
-.remote-panel h2 { font-size: 0.95rem; margin: 0; }
-.table-wrap { overflow-x: auto; }
-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 0.85rem;
-}
-th, td {
-  padding: 10px 14px;
-  text-align: left;
-  border-bottom: 1px solid var(--border);
-}
-th {
-  font-weight: 600;
-  font-size: 0.75rem;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: var(--muted);
-  background: var(--bg);
-}
+.table-wrap { overflow-x: auto; border-radius: 8px; border: 1px solid var(--border); }
+table { width: 100%; border-collapse: collapse; font-size: 0.86rem; }
+th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--border); vertical-align: top; }
+th { background: var(--bg); font-weight: 600; }
 tr:last-child td { border-bottom: none; }
-td.mono { font-variant-numeric: tabular-nums; color: var(--muted); font-size: 0.8rem; }
-td a { color: var(--accent); text-decoration: none; word-break: break-all; }
-td a:hover { text-decoration: underline; }
-.empty-row td {
-  text-align: center;
-  color: var(--muted);
-  padding: 24px;
+td a { word-break: break-all; color: var(--accent); }
+
+.meta { font-size: 0.82rem; color: var(--muted); margin-bottom: 8px; }
+.err {
+  font-size: 0.86rem;
+  color: #b91c1c;
+  margin-top: 8px;
 }
-.err-toast {
-  display: none;
-  margin-bottom: 16px;
-  padding: 12px 14px;
+
+.drop-zone {
+  border: 2px dashed var(--border);
   border-radius: var(--radius);
-  background: #fef2f2;
-  border: 1px solid #fecaca;
-  color: var(--danger);
-  font-size: 0.88rem;
+  padding: 22px 18px;
+  text-align: center;
+  background: linear-gradient(160deg, #f0f4ff 0%, #e8edf8 100%);
+  cursor: pointer;
+  margin-bottom: 12px;
 }
-.err-toast.visible { display: block; }
+.drop-zone:hover, .drop-zone.dragover { border-color: var(--accent); background: var(--accent-dim); }
+.preview-viewport {
+  position: relative;
+  height: min(38vh, 360px);
+  background: linear-gradient(160deg, #f0f4ff 0%, #e8edf8 100%);
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 10px;
+}
+.preview-canvas-host { width: 100%; height: 100%; }
+.hint { font-size: 0.82rem; color: var(--muted); margin: 0; }
   </style>
 </head>
 <body>
-  <div id="loading-overlay" class="loading-overlay" aria-hidden="true">
-    <div class="spinner" role="status"></div>
-    <p id="loading-text" class="loading-text">업로드 중…</p>
-  </div>
-
   <div class="wrap">
-    <span class="badge">Internal</span>
-    <h1>STL 업로드</h1>
-    <p class="lead">로컬 STL을 선택한 뒤 <strong>업로드</strong>를 누르면 Cloudflare Worker를 통해 저장소 <code>models/</code>에 반영되고, 고객용 뷰어 링크가 표시됩니다.</p>
+    <h1>STL 모델 · GitHub Pages</h1>
+    <p class="lead">
+      이 페이지는 Cloudflare Worker 없이 정적 사이트만 사용합니다. 모델 추가·삭제는 Git으로 저장소에 반영하면 됩니다.
+    </p>
 
-    <div class="warn-box">
-      GitHub 인증은 Worker에서만 처리합니다. 같은 Worker에서 이 페이지를 <code>/admin</code>으로 제공하면 <code>WORKER_URL</code>을 비워 두어도 됩니다. 별도 도메인에서 이 HTML만 연 경우에만 업로드 Worker의 전체 URL을 넣으세요.
+    <div class="panel">
+      <h2>배포 방법</h2>
+      <ul>
+        <li>GitHub 저장소 <strong>Settings → Pages</strong>에서 소스를 <code>main</code> 브랜치 루트(또는 사용 중인 브랜치)로 설정합니다.</li>
+        <li><code>models/</code> 아래에 <code>.stl</code> 파일을 넣고 푸시합니다. 파일명은 영문·숫자·<code>.</code> <code>_</code> <code>-</code> 만 권장합니다.</li>
+        <li>뷰어 주소: 사이트 루트에 <code>?model=파일이름</code> (.stl 제외) 를 붙입니다.</li>
+      </ul>
+      <p style="margin-top:12px">
+        <a id="link-repo-root" href="#">저장소에서 models 폴더 열기</a>
+      </p>
     </div>
 
-    <div id="err-toast" class="err-toast" role="alert"></div>
-
-    <div
-      id="drop-zone"
-      class="drop-zone"
-      tabindex="0"
-      role="button"
-      aria-label="STL 파일을 여기에 놓거나 클릭하여 선택"
-    >
-      <strong>STL을 여기에 드롭</strong>
-      <span>또는 클릭하여 선택 · 여러 파일 가능 (.stl)</span>
-    </div>
-    <input type="file" id="file-input" accept=".stl,.STL" multiple hidden />
-
-    <div class="row-actions">
-      <button type="button" id="btn-upload" class="btn btn-primary" disabled>업로드</button>
-      <button type="button" id="btn-clear-pending" class="btn" disabled>대기 목록 비우기</button>
-      <button type="button" id="btn-refresh-list" class="btn">목록 새로고침</button>
-    </div>
-
-    <div id="pending-panel" class="pending-panel" hidden>
-      <h2>업로드 대기</h2>
-      <ul id="pending-list" class="pending-list"></ul>
-    </div>
-
-    <div id="result-panel" class="result-panel">
-      <h2>마지막 업로드 링크</h2>
-      <a id="result-url" class="result-url" href="#" target="_blank" rel="noopener"></a>
-      <div class="result-actions">
-        <button type="button" id="btn-copy-url" class="btn btn-primary">링크 복사</button>
-        <button type="button" id="btn-kakao-share" class="btn">카카오톡 공유</button>
-      </div>
-      <p id="copy-msg" class="msg" hidden>클립보드에 복사했습니다.</p>
-    </div>
-
-    <div class="remote-panel">
-      <div class="head">
-        <h2>저장소의 models/ 파일</h2>
-        <span id="remote-meta" class="fmeta"></span>
+    <div class="panel">
+      <h2>배포된 모델 목록</h2>
+      <p class="meta">공개 저장소는 GitHub API로 읽습니다. 비공개 저장소는 목록이 비거나 오류가 날 수 있습니다.</p>
+      <div class="row-actions">
+        <button type="button" class="btn btn-primary" id="btn-refresh">목록 새로고침</button>
       </div>
       <div class="table-wrap">
         <table>
@@ -318,334 +153,329 @@ td a:hover { text-decoration: underline; }
             <tr>
               <th>파일</th>
               <th>뷰어 링크</th>
-              <th>비고</th>
             </tr>
           </thead>
-          <tbody id="remote-tbody">
-            <tr class="empty-row"><td colspan="3">목록을 불러오는 중…</td></tr>
+          <tbody id="tbody">
+            <tr><td colspan="2">불러오는 중…</td></tr>
           </tbody>
         </table>
       </div>
+      <p class="err" id="list-err" hidden></p>
+    </div>
+
+    <div class="panel">
+      <h2>로컬 STL 미리보기</h2>
+      <p class="meta">업로드는 없습니다. 드래그로 회전 · 휠로 줌. 배포 후에는 아래 예상 링크로 열 수 있습니다.</p>
+      <div class="drop-zone" id="drop-zone" tabindex="0" role="button">
+        <strong>STL 파일 선택 또는 여기에 놓기</strong>
+        <div style="font-size:0.82rem;color:var(--muted);margin-top:6px">브라우저에만 로드됩니다.</div>
+      </div>
+      <input type="file" id="file-input" accept=".stl,model/stl" hidden />
+      <div class="preview-viewport">
+        <div class="preview-canvas-host" id="preview-host"></div>
+      </div>
+      <p class="hint" id="preview-link-row" hidden>
+        배포 후 예상 링크: <a id="preview-link" href="#" target="_blank" rel="noopener"></a>
+        <button type="button" class="btn" id="btn-copy-link" style="margin-left:8px">복사</button>
+      </p>
     </div>
   </div>
 
-  <script>
-  // ═══════════════════════════════════════════════════════════════════════════
-  // 업로드용 Cloudflare Worker 베이스 URL
-  // ═══════════════════════════════════════════════════════════════════════════
-  /** 비우면 현재 페이지 origin 사용(같은 Worker에서 /admin 서빙 시). 파일만 열면 여기에 업로드 Worker URL을 넣으세요. */
-  const WORKER_URL = "";
-
-  function workerEndpoint(path) {
-    const p = path.startsWith("/") ? path : "/" + path;
-    const raw = (WORKER_URL || "").trim();
-    if (raw) {
-      return raw.replace(/\/$/, "") + p;
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+      "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
     }
-    if (typeof window !== "undefined" && window.location?.origin) {
-      return window.location.origin + p;
-    }
-    return "https://eoulrimstudio-upload.eoulrimstudio.workers.dev" + p;
   }
+  </script>
+  <script type="module">
+    import * as THREE from "three";
+    import { STLLoader } from "three/addons/loaders/STLLoader.js";
 
-  // ═══════════════════════════════════════════════════════════════════════════
-
-  /** @type {File[]} */
-  let pendingFiles = [];
-  let lastViewerUrl = "";
-
-  const dropZone = document.getElementById("drop-zone");
-  const fileInput = document.getElementById("file-input");
-  const btnUpload = document.getElementById("btn-upload");
-  const btnClearPending = document.getElementById("btn-clear-pending");
-  const btnRefreshList = document.getElementById("btn-refresh-list");
-  const pendingPanel = document.getElementById("pending-panel");
-  const pendingList = document.getElementById("pending-list");
-  const loadingOverlay = document.getElementById("loading-overlay");
-  const loadingText = document.getElementById("loading-text");
-  const resultPanel = document.getElementById("result-panel");
-  const resultUrlEl = document.getElementById("result-url");
-  const btnCopyUrl = document.getElementById("btn-copy-url");
-  const btnKakaoShare = document.getElementById("btn-kakao-share");
-  const copyMsg = document.getElementById("copy-msg");
-  const remoteTbody = document.getElementById("remote-tbody");
-  const remoteMeta = document.getElementById("remote-meta");
-  const errToast = document.getElementById("err-toast");
-
-  function showError(msg) {
-    errToast.textContent = msg;
-    errToast.classList.add("visible");
-  }
-  function clearError() {
-    errToast.textContent = "";
-    errToast.classList.remove("visible");
-  }
-
-  function normalizeUploadName(name) {
-    const lower = String(name).toLowerCase();
-    if (!lower.endsWith(".stl")) return null;
-    const base = name.slice(0, -4);
-    if (!/^[a-zA-Z0-9._-]+$/.test(base)) return null;
-    return base + ".stl";
-  }
-
-  function arrayBufferToBase64(buffer) {
-    const bytes = new Uint8Array(buffer);
-    const chunk = 0x8000;
-    let binary = "";
-    for (let i = 0; i < bytes.length; i += chunk) {
-      binary += String.fromCharCode.apply(null, bytes.subarray(i, i + chunk));
-    }
-    return btoa(binary);
-  }
-
-  /** Worker POST /upload → { success, url?, filename?, error? } */
-  async function uploadStlFile(file) {
-    const safeName = normalizeUploadName(file.name);
-    if (!safeName) {
-      throw new Error(`허용되지 않는 파일명입니다(영문·숫자·._- 만): ${file.name}`);
-    }
-    const buf = await file.arrayBuffer();
-    const content = arrayBufferToBase64(buf);
-
-    const res = await fetch(workerEndpoint("/upload"), {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ filename: safeName, content }),
-    });
-
-    let data;
-    try {
-      data = await res.json();
-    } catch {
-      throw new Error(`응답을 해석할 수 없습니다 (HTTP ${res.status})`);
+    function pagesSiteRoot() {
+      const u = new URL(window.location.href);
+      let segs = u.pathname.split("/").filter(Boolean);
+      if (segs.length && segs[segs.length - 1].endsWith(".html")) segs.pop();
+      if (segs.length && segs[segs.length - 1] === "admin") segs.pop();
+      const path = segs.length ? "/" + segs.join("/") + "/" : "/";
+      return new URL(path, u.origin).href;
     }
 
-    if (!res.ok || data.success === false) {
-      throw new Error(data.error || `업로드 실패 (HTTP ${res.status})`);
+    function viewerUrlForSlug(slug) {
+      const root = pagesSiteRoot();
+      const u = new URL(root);
+      u.searchParams.set("model", slug);
+      return u.href;
     }
-    if (!data.url) {
-      throw new Error("Worker 응답에 url이 없습니다.");
+
+    function getGithubRepoMeta() {
+      const m = document.querySelector('meta[name="github-repo"]');
+      const raw = (m && m.content || "").trim();
+      if (!raw || !raw.includes("/")) return { owner: "shinhp3", repo: "eoulrimstudio-models", full: "shinhp3/eoulrimstudio-models" };
+      const parts = raw.split("/").map((s) => s.trim()).filter(Boolean);
+      return { owner: parts[0], repo: parts[1], full: parts[0] + "/" + parts[1] };
     }
-    return { url: data.url, filename: data.filename || safeName };
-  }
 
-  function renderPending() {
-    pendingList.innerHTML = "";
-    if (pendingFiles.length === 0) {
-      pendingPanel.hidden = true;
-      btnUpload.disabled = true;
-      btnClearPending.disabled = true;
-      return;
-    }
-    pendingPanel.hidden = false;
-    btnUpload.disabled = false;
-    btnClearPending.disabled = false;
-    pendingFiles.forEach((file, idx) => {
-      const li = document.createElement("li");
-      const left = document.createElement("div");
-      left.innerHTML = `<div class="fname">${escapeHtml(file.name)}</div><div class="fmeta">${formatBytes(file.size)}</div>`;
-      const rm = document.createElement("button");
-      rm.type = "button";
-      rm.className = "btn btn-mini btn-danger";
-      rm.textContent = "제거";
-      rm.addEventListener("click", () => {
-        pendingFiles.splice(idx, 1);
-        renderPending();
-      });
-      li.appendChild(left);
-      li.appendChild(rm);
-      pendingList.appendChild(li);
-    });
-  }
+    const gh = getGithubRepoMeta();
+    document.getElementById("link-repo-root").href =
+      "https://github.com/" + gh.full + "/tree/HEAD/models";
 
-  function escapeHtml(s) {
-    return String(s)
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;");
-  }
+    const tbody = document.getElementById("tbody");
+    const listErr = document.getElementById("list-err");
+    const btnRefresh = document.getElementById("btn-refresh");
 
-  function formatBytes(n) {
-    if (n < 1024) return n + " B";
-    if (n < 1024 * 1024) return (n / 1024).toFixed(1) + " KB";
-    return (n / (1024 * 1024)).toFixed(1) + " MB";
-  }
-
-  function setLoading(show, text) {
-    loadingOverlay.classList.toggle("visible", show);
-    loadingOverlay.setAttribute("aria-hidden", show ? "false" : "true");
-    if (text) loadingText.textContent = text;
-  }
-
-  function showResult(url) {
-    lastViewerUrl = url;
-    resultUrlEl.href = url;
-    resultUrlEl.textContent = url;
-    resultPanel.classList.add("visible");
-    copyMsg.hidden = true;
-  }
-
-  function addFilesFromList(fileList) {
-    const incoming = Array.from(fileList || []).filter(f => f.name.toLowerCase().endsWith(".stl"));
-    if (incoming.length === 0 && fileList && fileList.length > 0) {
-      showError("STL 파일(.stl)만 추가할 수 있습니다.");
-      return;
-    }
-    clearError();
-    const names = new Set(pendingFiles.map(f => f.name));
-    for (const f of incoming) {
-      if (!names.has(f.name)) {
-        pendingFiles.push(f);
-        names.add(f.name);
-      }
-    }
-    renderPending();
-  }
-
-  dropZone.addEventListener("click", () => fileInput.click());
-  dropZone.addEventListener("keydown", e => {
-    if (e.key === "Enter" || e.key === " ") {
-      e.preventDefault();
-      fileInput.click();
-    }
-  });
-  ["dragenter", "dragover"].forEach(ev => {
-    dropZone.addEventListener(ev, e => {
-      e.preventDefault();
-      dropZone.classList.add("dragover");
-    });
-  });
-  dropZone.addEventListener("dragleave", e => {
-    if (!dropZone.contains(e.relatedTarget)) dropZone.classList.remove("dragover");
-  });
-  dropZone.addEventListener("drop", e => {
-    e.preventDefault();
-    dropZone.classList.remove("dragover");
-    addFilesFromList(e.dataTransfer?.files);
-  });
-  fileInput.addEventListener("change", () => {
-    addFilesFromList(fileInput.files);
-    fileInput.value = "";
-  });
-
-  btnClearPending.addEventListener("click", () => {
-    pendingFiles = [];
-    renderPending();
-  });
-
-  btnUpload.addEventListener("click", async () => {
-    clearError();
-    if (pendingFiles.length === 0) return;
-
-    const files = pendingFiles.slice();
-    let lastUrl = "";
-    try {
-      for (let i = 0; i < files.length; i++) {
-        setLoading(true, `업로드 중… (${i + 1}/${files.length})`);
-        const out = await uploadStlFile(files[i]);
-        lastUrl = out.url;
-      }
-      showResult(lastUrl);
-      pendingFiles = [];
-      renderPending();
-      await refreshRemoteList();
-    } catch (e) {
-      console.error(e);
-      showError(e.message || String(e));
-    } finally {
-      setLoading(false);
-    }
-  });
-
-  btnCopyUrl.addEventListener("click", async () => {
-    if (!lastViewerUrl) return;
-    try {
-      await navigator.clipboard.writeText(lastViewerUrl);
-      copyMsg.hidden = false;
-      setTimeout(() => { copyMsg.hidden = true; }, 2500);
-    } catch {
-      showError("클립보드 복사에 실패했습니다. 링크를 직접 선택해 복사해 주세요.");
-    }
-  });
-
-  btnKakaoShare.addEventListener("click", async () => {
-    if (!lastViewerUrl) return;
-    const title = "3D 모델 미리보기";
-    const text = `아래 링크에서 3D 모델을 확인할 수 있습니다.\n${lastViewerUrl}`;
-    try {
-      if (navigator.share) {
-        await navigator.share({
-          title,
-          text: "3D 모델 미리보기 링크입니다.",
-          url: lastViewerUrl,
-        });
-        return;
-      }
-    } catch (e) {
-      if (e.name === "AbortError") return;
-    }
-    try {
-      await navigator.clipboard.writeText(text);
-      alert("안내 문구와 링크를 클립보드에 복사했습니다. 카카오톡 채팅창에 붙여넣기 하세요.");
-    } catch {
-      alert(text);
-    }
-  });
-
-  async function refreshRemoteList() {
-    remoteMeta.textContent = "";
-    remoteTbody.innerHTML = `<tr class="empty-row"><td colspan="3">불러오는 중…</td></tr>`;
-    try {
-      clearError();
-      const res = await fetch(workerEndpoint("/list"), { method: "GET" });
-      let data;
+    async function refreshList() {
+      listErr.hidden = true;
+      tbody.innerHTML = "<tr><td colspan=\"2\">불러오는 중…</td></tr>";
       try {
-        data = await res.json();
-      } catch {
-        throw new Error(`목록 응답을 해석할 수 없습니다 (HTTP ${res.status})`);
+        const apiUrl =
+          "https://api.github.com/repos/" +
+          encodeURIComponent(gh.owner) +
+          "/" +
+          encodeURIComponent(gh.repo) +
+          "/contents/models";
+        const res = await fetch(apiUrl, { headers: { Accept: "application/vnd.github+json" } });
+        if (res.status === 404) {
+          tbody.innerHTML =
+            "<tr><td colspan=\"2\"><code>models/</code> 폴더가 없거나 아직 배포되지 않았습니다.</td></tr>";
+          return;
+        }
+        if (!res.ok) {
+          const t = await res.text();
+          throw new Error("GitHub API " + res.status + (t ? ": " + t.slice(0, 120) : ""));
+        }
+        const data = await res.json();
+        const rows = Array.isArray(data)
+          ? data.filter((x) => x.type === "file" && /\.stl$/i.test(x.name))
+          : [];
+        if (rows.length === 0) {
+          tbody.innerHTML =
+            "<tr><td colspan=\"2\">STL 파일이 없습니다.</td></tr>";
+          return;
+        }
+        tbody.innerHTML = "";
+        for (const item of rows.sort((a, b) => a.name.localeCompare(b.name))) {
+          const slug = item.name.replace(/\.stl$/i, "");
+          const url = viewerUrlForSlug(slug);
+          const tr = document.createElement("tr");
+          const tdName = document.createElement("td");
+          tdName.textContent = item.name;
+          const tdLink = document.createElement("td");
+          const a = document.createElement("a");
+          a.href = url;
+          a.textContent = url;
+          a.target = "_blank";
+          a.rel = "noopener";
+          tdLink.appendChild(a);
+          tr.appendChild(tdName);
+          tr.appendChild(tdLink);
+          tbody.appendChild(tr);
+        }
+      } catch (e) {
+        tbody.innerHTML =
+          "<tr><td colspan=\"2\">목록을 가져오지 못했습니다.</td></tr>";
+        listErr.textContent = e.message || String(e);
+        listErr.hidden = false;
       }
+    }
 
-      if (!res.ok && data.success === false) {
-        throw new Error(data.error || `목록 조회 실패 (HTTP ${res.status})`);
-      }
-      if (!res.ok) {
-        throw new Error(data.error || `HTTP ${res.status}`);
-      }
+    btnRefresh.addEventListener("click", () => refreshList());
 
-      if (data.success === false && data.error) {
-        throw new Error(data.error);
-      }
+    /* ----- 로컬 미리보기 ----- */
+    const dropZone = document.getElementById("drop-zone");
+    const fileInput = document.getElementById("file-input");
+    const previewHost = document.getElementById("preview-host");
+    const previewLinkRow = document.getElementById("preview-link-row");
+    const previewLink = document.getElementById("preview-link");
+    const btnCopyLink = document.getElementById("btn-copy-link");
 
-      const files = Array.isArray(data.files) ? data.files : [];
-      remoteMeta.textContent = `${files.length}개`;
-      if (files.length === 0) {
-        remoteTbody.innerHTML = `<tr class="empty-row"><td colspan="3">models/ 에 STL이 없습니다.</td></tr>`;
+    let preview = { scene: null, camera: null, renderer: null, mesh: null, _raf: null, _onResize: null };
+
+    function normalizeName(name) {
+      const lower = String(name).toLowerCase();
+      if (!lower.endsWith(".stl")) return null;
+      const base = name.slice(0, -4);
+      if (!/^[a-zA-Z0-9._-]+$/.test(base)) return null;
+      return { full: base + ".stl", slug: base };
+    }
+
+    function disposePreview() {
+      if (preview._raf) cancelAnimationFrame(preview._raf);
+      preview._raf = null;
+      if (preview._onResize) {
+        window.removeEventListener("resize", preview._onResize);
+        preview._onResize = null;
+      }
+      if (preview.mesh) {
+        preview.scene.remove(preview.mesh);
+        preview.mesh.geometry?.dispose();
+        preview.mesh.material?.dispose();
+        preview.mesh = null;
+      }
+      if (preview.renderer) {
+        preview.renderer.dispose();
+        const el = preview.renderer.domElement;
+        if (el && el.parentNode) el.parentNode.removeChild(el);
+        preview.renderer = null;
+      }
+      preview.scene = null;
+      preview.camera = null;
+    }
+
+    function setupDrag(domEl) {
+      let dragging = false;
+      let lx = 0, ly = 0;
+      const SPEED = 0.008;
+      function rot(dx, dy) {
+        if (!preview.mesh) return;
+        const qY = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), dx * SPEED);
+        const qX = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), dy * SPEED);
+        preview.mesh.quaternion.premultiply(qY).premultiply(qX);
+      }
+      function zoom(f) {
+        if (!preview.camera) return;
+        const dir = new THREE.Vector3(0, 0, -1).applyQuaternion(preview.camera.quaternion);
+        const dist = preview.camera.position.length();
+        preview.camera.position.addScaledVector(dir, dist * (1 - f));
+        const d = preview.camera.position.length();
+        if (d < 0.5) preview.camera.position.setLength(0.5);
+        if (d > 10000) preview.camera.position.setLength(10000);
+      }
+      domEl.addEventListener("mousedown", (e) => {
+        if (e.button !== 0) return;
+        dragging = true;
+        lx = e.clientX;
+        ly = e.clientY;
+        domEl.style.cursor = "grabbing";
+      });
+      window.addEventListener("mousemove", (e) => {
+        if (!dragging) return;
+        rot(e.clientX - lx, e.clientY - ly);
+        lx = e.clientX;
+        ly = e.clientY;
+      });
+      window.addEventListener("mouseup", () => {
+        dragging = false;
+        domEl.style.cursor = "grab";
+      });
+      domEl.style.cursor = "grab";
+      domEl.addEventListener(
+        "wheel",
+        (e) => {
+          e.preventDefault();
+          zoom(e.deltaY > 0 ? 1.12 : 1 / 1.12);
+        },
+        { passive: false }
+      );
+    }
+
+    async function loadPreviewFromFile(file) {
+      const n = normalizeName(file.name);
+      if (!n) {
+        alert("파일명은 영문·숫자·._- 만 사용하는 .stl 만 지원합니다.");
         return;
       }
+      disposePreview();
+      const w = Math.max(previewHost.clientWidth, 2);
+      const h = Math.max(previewHost.clientHeight, 2);
+      preview.scene = new THREE.Scene();
+      preview.scene.background = new THREE.Color(0xf0f4ff);
+      preview.camera = new THREE.PerspectiveCamera(45, w / h, 0.1, 2000);
+      preview.camera.position.set(0, 0, 120);
+      preview.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+      preview.renderer.setSize(w, h);
+      preview.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      previewHost.appendChild(preview.renderer.domElement);
+      preview.scene.add(new THREE.HemisphereLight(0xffffff, 0xdde4f0, 0.35));
+      const dir = new THREE.DirectionalLight(0xffffff, 1.1);
+      dir.position.set(55, 95, 70);
+      preview.scene.add(dir);
 
-      remoteTbody.innerHTML = "";
-      for (const item of files) {
-        const name = item.filename || "";
-        const url = item.url || "";
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td>${escapeHtml(name)}</td>
-          <td><a href="${escapeHtml(url)}" target="_blank" rel="noopener">${escapeHtml(url)}</a></td>
-          <td class="mono">—</td>`;
-        remoteTbody.appendChild(tr);
+      const buf = await file.arrayBuffer();
+      const geom = new STLLoader().parse(buf);
+      geom.computeVertexNormals();
+      geom.center();
+      preview.mesh = new THREE.Mesh(
+        geom,
+        new THREE.MeshStandardMaterial({ color: 0xa3f958, metalness: 0.05, roughness: 0.55 })
+      );
+      preview.scene.add(preview.mesh);
+
+      const box = new THREE.Box3().setFromObject(preview.mesh);
+      const size = new THREE.Vector3();
+      box.getSize(size);
+      const maxDim = Math.max(size.x, size.y, size.z, 1);
+      const dist = maxDim * 2;
+      preview.camera.near = Math.max(0.01, dist / 200);
+      preview.camera.far = dist * 50;
+      preview.camera.position.set(0, 0, dist);
+      preview.camera.lookAt(0, 0, 0);
+
+      setupDrag(preview.renderer.domElement);
+
+      function loop() {
+        preview._raf = requestAnimationFrame(loop);
+        preview.renderer.render(preview.scene, preview.camera);
       }
-    } catch (e) {
-      remoteTbody.innerHTML = `<tr class="empty-row"><td colspan="3">목록을 불러오지 못했습니다.</td></tr>`;
-      remoteMeta.textContent = "";
-      showError(e.message || String(e));
+      loop();
+      preview._onResize = () => {
+        if (!preview.renderer || !preview.camera) return;
+        const ww = Math.max(previewHost.clientWidth, 2);
+        const hh = Math.max(previewHost.clientHeight, 2);
+        preview.camera.aspect = ww / hh;
+        preview.camera.updateProjectionMatrix();
+        preview.renderer.setSize(ww, hh);
+      };
+      window.addEventListener("resize", preview._onResize);
+
+      const url = viewerUrlForSlug(n.slug);
+      previewLink.href = url;
+      previewLink.textContent = url;
+      previewLinkRow.hidden = false;
     }
-  }
 
-  btnRefreshList.addEventListener("click", () => refreshRemoteList().catch(() => {}));
+    btnCopyLink.addEventListener("click", async () => {
+      try {
+        await navigator.clipboard.writeText(previewLink.href);
+        btnCopyLink.textContent = "복사됨";
+        setTimeout(() => {
+          btnCopyLink.textContent = "복사";
+        }, 2000);
+      } catch {
+        alert(previewLink.href);
+      }
+    });
 
-  refreshRemoteList().catch(() => {});
+    dropZone.addEventListener("click", () => fileInput.click());
+    dropZone.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        fileInput.click();
+      }
+    });
+    ["dragenter", "dragover"].forEach((ev) => {
+      dropZone.addEventListener(ev, (e) => {
+        e.preventDefault();
+        dropZone.classList.add("dragover");
+      });
+    });
+    dropZone.addEventListener("dragleave", (e) => {
+      if (!dropZone.contains(e.relatedTarget)) dropZone.classList.remove("dragover");
+    });
+    dropZone.addEventListener("drop", (e) => {
+      e.preventDefault();
+      dropZone.classList.remove("dragover");
+      const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+      if (f) loadPreviewFromFile(f).catch(console.error);
+    });
+    fileInput.addEventListener("change", () => {
+      const f = fileInput.files && fileInput.files[0];
+      fileInput.value = "";
+      if (f) loadPreviewFromFile(f).catch(console.error);
+    });
+
+    refreshList();
   </script>
 </body>
 </html>

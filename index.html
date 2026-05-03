@@ -203,7 +203,7 @@ html:not([data-viewer]) #screen-error { display: flex; }
   <div id="screen-error" class="boot-screen">
     <div class="boot-inner">
       <h1>모델을 찾을 수 없습니다</h1>
-      <p class="boot-muted">올바른 링크인지 확인해 주세요. 주소에 <code>?model=파일이름</code> 형태가 포함되어 있어야 하며, 해당 STL이 제공 경로에 있어야 합니다.</p>
+      <p class="boot-muted">주소에 <code>?model=파일이름</code>(확장자 제외)이 있어야 하며, 저장소 <code>models/</code> 폴더의 STL과 이름이 같아야 합니다. GitHub Pages 배포 직후에는 반영까지 수 초 걸릴 수 있습니다.</p>
     </div>
   </div>
   <div id="app-main">
@@ -235,15 +235,6 @@ html:not([data-viewer]) #screen-error { display: flex; }
   <script type="module">
     import * as THREE from "three";
     import { STLLoader } from "three/addons/loaders/STLLoader.js";
-
-    const GITHUB_USERNAME = "shinhp3";
-    const REPO_NAME = "eoulrimstudio-models";
-    const GITHUB_BRANCH = "main";
-
-    function buildRawStlUrl(modelBaseName) {
-      const name = String(modelBaseName).replace(/\.stl$/i, "").trim();
-      return `https://raw.githubusercontent.com/${GITHUB_USERNAME}/${REPO_NAME}/${GITHUB_BRANCH}/models/${name}.stl`;
-    }
 
     function sanitizeModelParam(raw) {
       if (!raw || typeof raw !== "string") return "";
@@ -536,8 +527,8 @@ html:not([data-viewer]) #screen-error { display: flex; }
       }
 
       try {
-        const url = buildRawStlUrl(slug);
-        const res = await fetch(url, { cache: "no-store" });
+        const stlUrl = new URL(`models/${slug}.stl`, window.location.href).href;
+        const res = await fetch(stlUrl, { cache: "no-store" });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const buf = await res.arrayBuffer();
         if (!buf || buf.byteLength === 0) throw new Error("empty body");
