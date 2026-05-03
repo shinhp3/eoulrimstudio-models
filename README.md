@@ -1,30 +1,29 @@
 # eoulrimstudio-models
 
-STL 뷰어는 **GitHub Pages**, 업로드·삭제·관리자 로그인은 **Cloudflare Worker**로 나눈 구성입니다.
+- **GitHub Pages**: 공개 뷰어(`index.html`), 업로드 관리 UI(`admin/index.html`).
+- **Cloudflare Worker**: STL 업로드·목록·삭제 API, GitHub 연동. 관리 화면 HTML은 Worker에 두지 않습니다.
 
-## 역할 분담
+## 배포 구조
 
-| 구분 | 주소(예시) | 내용 |
-|------|------------|------|
-| 뷰어 | `https://shinhp3.github.io/eoulrimstudio-models/?model=이름` | `index.html`이 `models/`의 STL을 불러옵니다. |
-| 업로드·목록·삭제·로그인 | Worker 대시보드에 등록한 Worker 도메인 `/admin` | 저장소 루트의 `worker.js` 코드를 붙여넣어 배포합니다. |
+| 구분 | 내용 |
+|------|------|
+| Pages `admin/index.html` | 드롭존·미리보기·업로드 버튼. `<meta name="worker-api-base">`로 Worker 주소 지정. |
+| Worker `worker.js` | `POST /upload`, `GET /list`, `DELETE /delete`, records/tools 등. **비밀번호 로그인 없음.** |
+| Worker `/admin` 접속 시 | GitHub Pages의 `/admin/` 으로 리다이렉트 |
 
-Worker 루트(`/`)로 접속하면 같은 Pages 뷰어로 **리다이렉트**됩니다.
+Worker URL이 노출되면 API를 누구나 호출할 수 있습니다. 필요 시 Worker에 별도 검증(예: 공유 시크릿 헤더)을 추가하세요.
 
-## GitHub Pages
+## Secrets (Worker)
 
-1. 저장소 **Settings → Pages**에서 브랜치(예: `main`) · **/(root)** 선택
-2. `models/`에 `.stl` 추가 후 푸시 → Pages에 반영
+- `GITHUB_TOKEN`, `GITHUB_USERNAME`, `GITHUB_REPO` — STL 저장소 `models/`
+- `GITHUB_RECORDS_REPO`, `GITHUB_TOOLS_REPO` — 해당 API를 쓸 때만
 
-## Cloudflare Worker
+**`ADMIN_PASSWORD`는 사용하지 않습니다.** Cloudflare에서 삭제해도 됩니다.
 
-1. Cloudflare 대시보드에서 Worker 편집기에 **`worker.js` 전체**를 붙여넣고 배포합니다.
-2. 아래 **Secrets / 변수**를 설정합니다.  
-   - `ADMIN_PASSWORD`, `GITHUB_TOKEN`, `GITHUB_USERNAME`, `GITHUB_REPO`  
-   - `GITHUB_RECORDS_REPO` (records/API를 쓰는 경우)
-3. 업로드 후 뷰어 링크에 쓰이는 주소는 코드 안 **`VIEWER_BASE`** 와 동일해야 합니다. (현재 GitHub Pages 기준으로 맞춰 두었습니다.)
-4. Worker 도메인이 바뀌면 `index.html` 안의 관리자 링크도 같은 호스트로 수정하세요.
+## Pages 설정
 
-## 정적 admin 페이지
+저장소 **Settings → Pages**: 브랜치 루트.
 
-`/admin/index.html`(Pages)은 배포 안내·공개 API 목록·로컬 미리보기용입니다. 실제 GitHub에 파일을 쓰는 업로드는 Worker에서만 됩니다.
+## Worker 설정
+
+대시보드에 **`worker.js` 전체** 붙여넣기. `VIEWER_BASE`는 Pages 뷰어 URL과 맞출 것.
