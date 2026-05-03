@@ -1,10 +1,100 @@
 /**
  * Cloudflare Worker — 대시보드에 코드 붙여넣기 배포용 (import 없음)
- * Secrets: GITHUB_TOKEN, GITHUB_USERNAME, GITHUB_REPO
+ * Secrets: ADMIN_PASSWORD, GITHUB_TOKEN, GITHUB_USERNAME, GITHUB_REPO (STL models),
+ *          GITHUB_RECORDS_REPO (records.json 저장소)
  *
- * HTML은 빌드 시 admin/index.html · viewer/index.html 에서 생성합니다.
+ * HTML은 빌드 시 admin/login.html · admin/index.html · viewer/index.html 에서 생성합니다.
  * 재생성: node _generate_worker_inline.mjs
  */
+
+const LOGIN_HTML = `<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>관리자 로그인</title>
+  <style>
+body {
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  background: #f8f9fb;
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+.box {
+  background: #fff;
+  border: 1px solid #e2e5ed;
+  border-radius: 12px;
+  padding: 28px;
+  max-width: 360px;
+  width: 100%;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+}
+h1 {
+  font-size: 1.15rem;
+  margin: 0 0 16px;
+  font-weight: 600;
+}
+.err {
+  color: #b91c1c;
+  font-size: 0.88rem;
+  margin: 0 0 12px;
+  display: none;
+}
+label {
+  display: block;
+  font-size: 0.85rem;
+  color: #6b7280;
+  margin-bottom: 6px;
+}
+input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #e2e5ed;
+  border-radius: 8px;
+  font: inherit;
+  box-sizing: border-box;
+  margin-bottom: 14px;
+}
+button {
+  width: 100%;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #2f6bff;
+  background: rgba(47, 107, 255, 0.12);
+  color: #2f6bff;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+button:hover {
+  background: rgba(47, 107, 255, 0.22);
+}
+  </style>
+</head>
+<body>
+  <div class="box">
+    <h1>관리자 로그인</h1>
+    <p id="err" class="err">비밀번호가 틀렸습니다.</p>
+    <form method="post" action="/auth">
+      <label for="pw">비밀번호</label>
+      <input id="pw" type="password" name="password" autocomplete="current-password" required />
+      <button type="submit">확인</button>
+    </form>
+  </div>
+  <script>
+  (function () {
+    if (/\\berr=1\\b/.test(location.search)) {
+      document.getElementById("err").style.display = "block";
+    }
+  })();
+  </script>
+</body>
+</html>
+`;
 
 const ADMIN_HTML = `<!DOCTYPE html>
 <html lang="ko">
@@ -87,6 +177,36 @@ h1 {
 }
 .drop-zone strong { display: block; margin-bottom: 6px; font-size: 0.95rem; }
 .drop-zone span { font-size: 0.82rem; color: var(--muted); }
+
+.preview-panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  margin-bottom: 20px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+}
+.preview-panel h2 {
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin: 0 0 10px;
+}
+.preview-viewport {
+  position: relative;
+  height: min(42vh, 400px);
+  background: linear-gradient(160deg, #f0f4ff 0%, #e8edf8 100%);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.preview-canvas-host {
+  width: 100%;
+  height: 100%;
+}
+.preview-hint {
+  margin: 8px 0 0;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
 
 .row-actions {
   display: flex;
@@ -244,7 +364,6 @@ th {
   background: var(--bg);
 }
 tr:last-child td { border-bottom: none; }
-td.mono { font-variant-numeric: tabular-nums; color: var(--muted); font-size: 0.8rem; }
 td a { color: var(--accent); text-decoration: none; word-break: break-all; }
 td a:hover { text-decoration: underline; }
 .empty-row td {
@@ -274,10 +393,10 @@ td a:hover { text-decoration: underline; }
   <div class="wrap">
     <span class="badge">Internal</span>
     <h1>STL 업로드</h1>
-    <p class="lead">로컬 STL을 선택한 뒤 <strong>업로드</strong>를 누르면 Cloudflare Worker를 통해 저장소 <code>models/</code>에 반영되고, 고객용 뷰어 링크가 표시됩니다.</p>
+    <p class="lead">STL을 추가하면 아래에서 <strong>미리보기</strong>할 수 있습니다. 확인 후 <strong>업로드</strong>를 누르면 저장소 <code>models/</code>에 반영됩니다.</p>
 
     <div class="warn-box">
-      GitHub 인증은 Worker에서만 처리합니다. 같은 Worker에서 이 페이지를 <code>/admin</code>으로 제공하면 <code>WORKER_URL</code>을 비워 두어도 됩니다. 별도 도메인에서 이 HTML만 연 경우에만 업로드 Worker의 전체 URL을 넣으세요.
+      GitHub 인증은 Worker에서만 처리합니다. 같은 Worker에서 이 페이지를 <code>/admin</code>으로 제공하면 <code>WORKER_URL</code>을 비워 두어도 됩니다.
     </div>
 
     <div id="err-toast" class="err-toast" role="alert"></div>
@@ -293,6 +412,14 @@ td a:hover { text-decoration: underline; }
       <span>또는 클릭하여 선택 · 여러 파일 가능 (.stl)</span>
     </div>
     <input type="file" id="file-input" accept=".stl,.STL" multiple hidden />
+
+    <div id="preview-panel" class="preview-panel">
+      <h2>3D 미리보기</h2>
+      <div class="preview-viewport">
+        <div id="preview-canvas-host" class="preview-canvas-host"></div>
+      </div>
+      <p class="preview-hint">대기 목록의 <strong>첫 번째</strong> 파일이 표시됩니다. 드래그로 회전 · 휠로 줌</p>
+    </div>
 
     <div class="row-actions">
       <button type="button" id="btn-upload" class="btn btn-primary" disabled>업로드</button>
@@ -326,7 +453,7 @@ td a:hover { text-decoration: underline; }
             <tr>
               <th>파일</th>
               <th>뷰어 링크</th>
-              <th>비고</th>
+              <th>작업</th>
             </tr>
           </thead>
           <tbody id="remote-tbody">
@@ -337,323 +464,620 @@ td a:hover { text-decoration: underline; }
     </div>
   </div>
 
-  <script>
-  // ═══════════════════════════════════════════════════════════════════════════
-  // 업로드용 Cloudflare Worker 베이스 URL
-  // ═══════════════════════════════════════════════════════════════════════════
-  /** 비우면 현재 페이지 origin 사용(같은 Worker에서 /admin 서빙 시). 파일만 열면 여기에 업로드 Worker URL을 넣으세요. */
-  const WORKER_URL = "";
-
-  function workerEndpoint(path) {
-    const p = path.startsWith("/") ? path : "/" + path;
-    const raw = (WORKER_URL || "").trim();
-    if (raw) {
-      return raw.replace(/\\/$/, "") + p;
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+      "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
     }
-    if (typeof window !== "undefined" && window.location?.origin) {
-      return window.location.origin + p;
-    }
-    return "https://eoulrimstudio-upload.eoulrimstudio.workers.dev" + p;
   }
+  </script>
+  <script type="module">
+    import * as THREE from "three";
+    import { STLLoader } from "three/addons/loaders/STLLoader.js";
 
-  // ═══════════════════════════════════════════════════════════════════════════
+    const PUBLIC_VIEWER_BASE = "https://eoulrimstudio-upload.eoulrimstudio.workers.dev";
 
-  /** @type {File[]} */
-  let pendingFiles = [];
-  let lastViewerUrl = "";
+    /** 비우면 현재 origin — 같은 Worker에서 /admin 제공 시 */
+    const WORKER_URL = "";
 
-  const dropZone = document.getElementById("drop-zone");
-  const fileInput = document.getElementById("file-input");
-  const btnUpload = document.getElementById("btn-upload");
-  const btnClearPending = document.getElementById("btn-clear-pending");
-  const btnRefreshList = document.getElementById("btn-refresh-list");
-  const pendingPanel = document.getElementById("pending-panel");
-  const pendingList = document.getElementById("pending-list");
-  const loadingOverlay = document.getElementById("loading-overlay");
-  const loadingText = document.getElementById("loading-text");
-  const resultPanel = document.getElementById("result-panel");
-  const resultUrlEl = document.getElementById("result-url");
-  const btnCopyUrl = document.getElementById("btn-copy-url");
-  const btnKakaoShare = document.getElementById("btn-kakao-share");
-  const copyMsg = document.getElementById("copy-msg");
-  const remoteTbody = document.getElementById("remote-tbody");
-  const remoteMeta = document.getElementById("remote-meta");
-  const errToast = document.getElementById("err-toast");
-
-  function showError(msg) {
-    errToast.textContent = msg;
-    errToast.classList.add("visible");
-  }
-  function clearError() {
-    errToast.textContent = "";
-    errToast.classList.remove("visible");
-  }
-
-  function normalizeUploadName(name) {
-    const lower = String(name).toLowerCase();
-    if (!lower.endsWith(".stl")) return null;
-    const base = name.slice(0, -4);
-    if (!/^[a-zA-Z0-9._-]+$/.test(base)) return null;
-    return base + ".stl";
-  }
-
-  function arrayBufferToBase64(buffer) {
-    const bytes = new Uint8Array(buffer);
-    const chunk = 0x8000;
-    let binary = "";
-    for (let i = 0; i < bytes.length; i += chunk) {
-      binary += String.fromCharCode.apply(null, bytes.subarray(i, i + chunk));
-    }
-    return btoa(binary);
-  }
-
-  /** Worker POST /upload → { success, url?, filename?, error? } */
-  async function uploadStlFile(file) {
-    const safeName = normalizeUploadName(file.name);
-    if (!safeName) {
-      throw new Error(\`허용되지 않는 파일명입니다(영문·숫자·._- 만): \${file.name}\`);
-    }
-    const buf = await file.arrayBuffer();
-    const content = arrayBufferToBase64(buf);
-
-    const res = await fetch(workerEndpoint("/upload"), {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ filename: safeName, content }),
-    });
-
-    let data;
-    try {
-      data = await res.json();
-    } catch {
-      throw new Error(\`응답을 해석할 수 없습니다 (HTTP \${res.status})\`);
+    function workerEndpoint(path) {
+      const p = path.startsWith("/") ? path : "/" + path;
+      const raw = (WORKER_URL || "").trim();
+      if (raw) return raw.replace(/\\/$/, "") + p;
+      if (typeof window !== "undefined" && window.location && window.location.origin) {
+        return window.location.origin + p;
+      }
+      return "https://eoulrimstudio-upload.eoulrimstudio.workers.dev" + p;
     }
 
-    if (!res.ok || data.success === false) {
-      throw new Error(data.error || \`업로드 실패 (HTTP \${res.status})\`);
+    function publicViewerUrlForFilename(filename) {
+      const base = String(filename).replace(/\\.stl$/i, "").trim();
+      return PUBLIC_VIEWER_BASE.replace(/\\/$/, "") + "/?model=" + encodeURIComponent(base);
     }
-    if (!data.url) {
-      throw new Error("Worker 응답에 url이 없습니다.");
-    }
-    return { url: data.url, filename: data.filename || safeName };
-  }
 
-  function renderPending() {
-    pendingList.innerHTML = "";
-    if (pendingFiles.length === 0) {
-      pendingPanel.hidden = true;
-      btnUpload.disabled = true;
-      btnClearPending.disabled = true;
-      return;
+    let pendingFiles = [];
+    let lastViewerUrl = "";
+
+    let preview = {
+      scene: null,
+      camera: null,
+      renderer: null,
+      mesh: null,
+      hemiLight: null,
+      dirLight: null,
+      _raf: null,
+      _onResize: null,
+      initialCameraPos: null,
+    };
+
+    const dropZone = document.getElementById("drop-zone");
+    const fileInput = document.getElementById("file-input");
+    const btnUpload = document.getElementById("btn-upload");
+    const btnClearPending = document.getElementById("btn-clear-pending");
+    const btnRefreshList = document.getElementById("btn-refresh-list");
+    const pendingPanel = document.getElementById("pending-panel");
+    const pendingList = document.getElementById("pending-list");
+    const loadingOverlay = document.getElementById("loading-overlay");
+    const loadingText = document.getElementById("loading-text");
+    const resultPanel = document.getElementById("result-panel");
+    const resultUrlEl = document.getElementById("result-url");
+    const btnCopyUrl = document.getElementById("btn-copy-url");
+    const btnKakaoShare = document.getElementById("btn-kakao-share");
+    const copyMsg = document.getElementById("copy-msg");
+    const remoteTbody = document.getElementById("remote-tbody");
+    const remoteMeta = document.getElementById("remote-meta");
+    const errToast = document.getElementById("err-toast");
+    const previewHost = document.getElementById("preview-canvas-host");
+
+    function showError(msg) {
+      errToast.textContent = msg;
+      errToast.classList.add("visible");
     }
-    pendingPanel.hidden = false;
-    btnUpload.disabled = false;
-    btnClearPending.disabled = false;
-    pendingFiles.forEach((file, idx) => {
-      const li = document.createElement("li");
-      const left = document.createElement("div");
-      left.innerHTML = \`<div class="fname">\${escapeHtml(file.name)}</div><div class="fmeta">\${formatBytes(file.size)}</div>\`;
-      const rm = document.createElement("button");
-      rm.type = "button";
-      rm.className = "btn btn-mini btn-danger";
-      rm.textContent = "제거";
-      rm.addEventListener("click", () => {
-        pendingFiles.splice(idx, 1);
-        renderPending();
+    function clearError() {
+      errToast.textContent = "";
+      errToast.classList.remove("visible");
+    }
+
+    function normalizeUploadName(name) {
+      const lower = String(name).toLowerCase();
+      if (!lower.endsWith(".stl")) return null;
+      const base = name.slice(0, -4);
+      if (!/^[a-zA-Z0-9._-]+$/.test(base)) return null;
+      return base + ".stl";
+    }
+
+    function arrayBufferToBase64(buffer) {
+      const bytes = new Uint8Array(buffer);
+      const chunk = 0x8000;
+      let binary = "";
+      for (let i = 0; i < bytes.length; i += chunk) {
+        binary += String.fromCharCode.apply(null, bytes.subarray(i, i + chunk));
+      }
+      return btoa(binary);
+    }
+
+    function disposePreviewMesh() {
+      if (preview.mesh) {
+        preview.scene.remove(preview.mesh);
+        preview.mesh.geometry?.dispose();
+        preview.mesh.material?.dispose();
+        preview.mesh = undefined;
+      }
+    }
+
+    function stopPreviewLoop() {
+      if (preview._raf) {
+        cancelAnimationFrame(preview._raf);
+        preview._raf = null;
+      }
+      if (preview._onResize) {
+        window.removeEventListener("resize", preview._onResize);
+        preview._onResize = null;
+      }
+    }
+
+    function destroyPreviewGl() {
+      stopPreviewLoop();
+      disposePreviewMesh();
+      if (preview.renderer) {
+        preview.renderer.dispose();
+        const el = preview.renderer.domElement;
+        if (el && el.parentNode) el.parentNode.removeChild(el);
+        preview.renderer = null;
+      }
+      preview.scene = null;
+      preview.camera = null;
+      preview.hemiLight = null;
+      preview.dirLight = null;
+    }
+
+    function setupPreviewDrag() {
+      const el = preview.renderer.domElement;
+      let dragging = false;
+      let lastX = 0;
+      let lastY = 0;
+      const SPEED = 0.008;
+
+      function applyDelta(dx, dy) {
+        if (!preview.mesh) return;
+        const qY = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), dx * SPEED);
+        const qX = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), dy * SPEED);
+        preview.mesh.quaternion.premultiply(qY).premultiply(qX);
+      }
+
+      function applyZoom(factor) {
+        const minDist = 0.5;
+        const maxDist = 10000;
+        const dir = new THREE.Vector3(0, 0, -1).applyQuaternion(preview.camera.quaternion);
+        const dist = preview.camera.position.length();
+        preview.camera.position.addScaledVector(dir, dist * (1 - factor));
+        const newDist = preview.camera.position.length();
+        if (newDist < minDist) preview.camera.position.setLength(minDist);
+        if (newDist > maxDist) preview.camera.position.setLength(maxDist);
+      }
+
+      el.addEventListener("mousedown", (e) => {
+        if (e.button !== 0) return;
+        dragging = true;
+        lastX = e.clientX;
+        lastY = e.clientY;
+        el.style.cursor = "grabbing";
       });
-      li.appendChild(left);
-      li.appendChild(rm);
-      pendingList.appendChild(li);
-    });
-  }
+      window.addEventListener("mousemove", (e) => {
+        if (!dragging) return;
+        applyDelta(e.clientX - lastX, e.clientY - lastY);
+        lastX = e.clientX;
+        lastY = e.clientY;
+      });
+      window.addEventListener("mouseup", () => {
+        dragging = false;
+        el.style.cursor = "grab";
+      });
+      el.style.cursor = "grab";
 
-  function escapeHtml(s) {
-    return String(s)
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;");
-  }
+      el.addEventListener(
+        "wheel",
+        (e) => {
+          e.preventDefault();
+          applyZoom(e.deltaY > 0 ? 1.12 : 1 / 1.12);
+        },
+        { passive: false }
+      );
 
-  function formatBytes(n) {
-    if (n < 1024) return n + " B";
-    if (n < 1024 * 1024) return (n / 1024).toFixed(1) + " KB";
-    return (n / (1024 * 1024)).toFixed(1) + " MB";
-  }
-
-  function setLoading(show, text) {
-    loadingOverlay.classList.toggle("visible", show);
-    loadingOverlay.setAttribute("aria-hidden", show ? "false" : "true");
-    if (text) loadingText.textContent = text;
-  }
-
-  function showResult(url) {
-    lastViewerUrl = url;
-    resultUrlEl.href = url;
-    resultUrlEl.textContent = url;
-    resultPanel.classList.add("visible");
-    copyMsg.hidden = true;
-  }
-
-  function addFilesFromList(fileList) {
-    const incoming = Array.from(fileList || []).filter(f => f.name.toLowerCase().endsWith(".stl"));
-    if (incoming.length === 0 && fileList && fileList.length > 0) {
-      showError("STL 파일(.stl)만 추가할 수 있습니다.");
-      return;
+      let lastTouchX = 0;
+      let lastTouchY = 0;
+      let lastPinchDist = 0;
+      el.addEventListener(
+        "touchstart",
+        (e) => {
+          e.preventDefault();
+          if (e.touches.length === 1) {
+            lastTouchX = e.touches[0].clientX;
+            lastTouchY = e.touches[0].clientY;
+          } else if (e.touches.length === 2) {
+            lastPinchDist = Math.hypot(
+              e.touches[0].clientX - e.touches[1].clientX,
+              e.touches[0].clientY - e.touches[1].clientY
+            );
+          }
+        },
+        { passive: false }
+      );
+      el.addEventListener(
+        "touchmove",
+        (e) => {
+          e.preventDefault();
+          if (e.touches.length === 1) {
+            applyDelta(e.touches[0].clientX - lastTouchX, e.touches[0].clientY - lastTouchY);
+            lastTouchX = e.touches[0].clientX;
+            lastTouchY = e.touches[0].clientY;
+          } else if (e.touches.length === 2) {
+            const dist = Math.hypot(
+              e.touches[0].clientX - e.touches[1].clientX,
+              e.touches[0].clientY - e.touches[1].clientY
+            );
+            if (lastPinchDist > 0) applyZoom(lastPinchDist / dist);
+            lastPinchDist = dist;
+          }
+        },
+        { passive: false }
+      );
+      el.addEventListener("touchend", () => {
+        lastPinchDist = 0;
+      }, { passive: true });
     }
-    clearError();
-    const names = new Set(pendingFiles.map(f => f.name));
-    for (const f of incoming) {
-      if (!names.has(f.name)) {
-        pendingFiles.push(f);
-        names.add(f.name);
+
+    function resizePreview() {
+      if (!preview.renderer || !preview.camera || !previewHost) return;
+      const w = Math.max(previewHost.clientWidth, 2);
+      const h = Math.max(previewHost.clientHeight, 2);
+      preview.camera.aspect = w / h;
+      preview.camera.updateProjectionMatrix();
+      preview.renderer.setSize(w, h);
+    }
+
+    function fitCameraToMesh(mesh) {
+      const box = new THREE.Box3().setFromObject(mesh);
+      const size = new THREE.Vector3();
+      box.getSize(size);
+      const maxDim = Math.max(size.x, size.y, size.z, 1);
+      const dist = maxDim * 2.0;
+      preview.camera.near = Math.max(0.01, dist / 200);
+      preview.camera.far = dist * 50;
+      preview.camera.updateProjectionMatrix();
+      preview.initialCameraPos = new THREE.Vector3(0, 0, dist);
+      preview.camera.position.copy(preview.initialCameraPos);
+      preview.camera.lookAt(0, 0, 0);
+    }
+
+    async function ensurePreviewGl() {
+      if (preview.renderer && preview.scene) return;
+      destroyPreviewGl();
+      const host = previewHost;
+      const w = Math.max(host.clientWidth, 2);
+      const h = Math.max(host.clientHeight, 2);
+      preview.scene = new THREE.Scene();
+      preview.scene.background = new THREE.Color(0xf0f4ff);
+      preview.camera = new THREE.PerspectiveCamera(45, w / h, 0.1, 2000);
+      preview.camera.position.set(0, 0, 120);
+      preview.camera.lookAt(0, 0, 0);
+      preview.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+      preview.renderer.setSize(w, h);
+      preview.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      host.appendChild(preview.renderer.domElement);
+
+      preview.hemiLight = new THREE.HemisphereLight(0xffffff, 0xdde4f0, 0.25);
+      preview.scene.add(preview.hemiLight);
+      preview.dirLight = new THREE.DirectionalLight(0xffffff, 1.15);
+      preview.scene.add(preview.dirLight.target);
+      preview.dirLight.target.position.set(0, 0, 0);
+      preview.scene.add(preview.dirLight);
+      preview.dirLight.position.set(55, 95, 70);
+
+      setupPreviewDrag();
+
+      function loop() {
+        preview._raf = requestAnimationFrame(loop);
+        preview.renderer.render(preview.scene, preview.camera);
       }
+      loop();
+
+      preview._onResize = resizePreview;
+      window.addEventListener("resize", preview._onResize);
+      requestAnimationFrame(resizePreview);
     }
-    renderPending();
-  }
 
-  dropZone.addEventListener("click", () => fileInput.click());
-  dropZone.addEventListener("keydown", e => {
-    if (e.key === "Enter" || e.key === " ") {
-      e.preventDefault();
-      fileInput.click();
-    }
-  });
-  ["dragenter", "dragover"].forEach(ev => {
-    dropZone.addEventListener(ev, e => {
-      e.preventDefault();
-      dropZone.classList.add("dragover");
-    });
-  });
-  dropZone.addEventListener("dragleave", e => {
-    if (!dropZone.contains(e.relatedTarget)) dropZone.classList.remove("dragover");
-  });
-  dropZone.addEventListener("drop", e => {
-    e.preventDefault();
-    dropZone.classList.remove("dragover");
-    addFilesFromList(e.dataTransfer?.files);
-  });
-  fileInput.addEventListener("change", () => {
-    addFilesFromList(fileInput.files);
-    fileInput.value = "";
-  });
-
-  btnClearPending.addEventListener("click", () => {
-    pendingFiles = [];
-    renderPending();
-  });
-
-  btnUpload.addEventListener("click", async () => {
-    clearError();
-    if (pendingFiles.length === 0) return;
-
-    const files = pendingFiles.slice();
-    let lastUrl = "";
-    try {
-      for (let i = 0; i < files.length; i++) {
-        setLoading(true, \`업로드 중… (\${i + 1}/\${files.length})\`);
-        const out = await uploadStlFile(files[i]);
-        lastUrl = out.url;
-      }
-      showResult(lastUrl);
-      pendingFiles = [];
-      renderPending();
-      await refreshRemoteList();
-    } catch (e) {
-      console.error(e);
-      showError(e.message || String(e));
-    } finally {
-      setLoading(false);
-    }
-  });
-
-  btnCopyUrl.addEventListener("click", async () => {
-    if (!lastViewerUrl) return;
-    try {
-      await navigator.clipboard.writeText(lastViewerUrl);
-      copyMsg.hidden = false;
-      setTimeout(() => { copyMsg.hidden = true; }, 2500);
-    } catch {
-      showError("클립보드 복사에 실패했습니다. 링크를 직접 선택해 복사해 주세요.");
-    }
-  });
-
-  btnKakaoShare.addEventListener("click", async () => {
-    if (!lastViewerUrl) return;
-    const title = "3D 모델 미리보기";
-    const text = \`아래 링크에서 3D 모델을 확인할 수 있습니다.\\n\${lastViewerUrl}\`;
-    try {
-      if (navigator.share) {
-        await navigator.share({
-          title,
-          text: "3D 모델 미리보기 링크입니다.",
-          url: lastViewerUrl,
-        });
+    async function loadPreviewFromFirstPending() {
+      const first = pendingFiles[0];
+      if (!first || !normalizeUploadName(first.name)) {
+        destroyPreviewGl();
         return;
       }
-    } catch (e) {
-      if (e.name === "AbortError") return;
+      await ensurePreviewGl();
+      const buf = await first.arrayBuffer();
+      const loader = new STLLoader();
+      const geometry = loader.parse(buf);
+      geometry.computeVertexNormals();
+      geometry.center();
+      disposePreviewMesh();
+      const mat = new THREE.MeshStandardMaterial({
+        color: 0xa3f958,
+        metalness: 0.05,
+        roughness: 0.55,
+      });
+      preview.mesh = new THREE.Mesh(geometry, mat);
+      preview.scene.add(preview.mesh);
+      fitCameraToMesh(preview.mesh);
     }
-    try {
-      await navigator.clipboard.writeText(text);
-      alert("안내 문구와 링크를 클립보드에 복사했습니다. 카카오톡 채팅창에 붙여넣기 하세요.");
-    } catch {
-      alert(text);
-    }
-  });
 
-  async function refreshRemoteList() {
-    remoteMeta.textContent = "";
-    remoteTbody.innerHTML = \`<tr class="empty-row"><td colspan="3">불러오는 중…</td></tr>\`;
-    try {
-      clearError();
-      const res = await fetch(workerEndpoint("/list"), { method: "GET" });
+    async function uploadStlFile(file) {
+      const safeName = normalizeUploadName(file.name);
+      if (!safeName) {
+        throw new Error("허용되지 않는 파일명입니다(영문·숫자·._- 만): " + file.name);
+      }
+      const buf = await file.arrayBuffer();
+      const content = arrayBufferToBase64(buf);
+
+      const res = await fetch(workerEndpoint("/upload"), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ filename: safeName, content }),
+        credentials: "include",
+      });
+
       let data;
       try {
         data = await res.json();
       } catch {
-        throw new Error(\`목록 응답을 해석할 수 없습니다 (HTTP \${res.status})\`);
+        throw new Error("응답을 해석할 수 없습니다 (HTTP " + res.status + ")");
       }
 
-      if (!res.ok && data.success === false) {
-        throw new Error(data.error || \`목록 조회 실패 (HTTP \${res.status})\`);
+      if (!res.ok || data.success === false) {
+        throw new Error(data.error || "업로드 실패 (HTTP " + res.status + ")");
       }
-      if (!res.ok) {
-        throw new Error(data.error || \`HTTP \${res.status}\`);
-      }
+      const url =
+        data.url ||
+        publicViewerUrlForFilename(data.filename || safeName);
+      return { url, filename: data.filename || safeName };
+    }
 
-      if (data.success === false && data.error) {
-        throw new Error(data.error);
-      }
-
-      const files = Array.isArray(data.files) ? data.files : [];
-      remoteMeta.textContent = \`\${files.length}개\`;
-      if (files.length === 0) {
-        remoteTbody.innerHTML = \`<tr class="empty-row"><td colspan="3">models/ 에 STL이 없습니다.</td></tr>\`;
+    function renderPending() {
+      pendingList.innerHTML = "";
+      if (pendingFiles.length === 0) {
+        pendingPanel.hidden = true;
+        btnUpload.disabled = true;
+        btnClearPending.disabled = true;
+        destroyPreviewGl();
         return;
       }
-
-      remoteTbody.innerHTML = "";
-      for (const item of files) {
-        const name = item.filename || "";
-        const url = item.url || "";
-        const tr = document.createElement("tr");
-        tr.innerHTML = \`
-          <td>\${escapeHtml(name)}</td>
-          <td><a href="\${escapeHtml(url)}" target="_blank" rel="noopener">\${escapeHtml(url)}</a></td>
-          <td class="mono">—</td>\`;
-        remoteTbody.appendChild(tr);
-      }
-    } catch (e) {
-      remoteTbody.innerHTML = \`<tr class="empty-row"><td colspan="3">목록을 불러오지 못했습니다.</td></tr>\`;
-      remoteMeta.textContent = "";
-      showError(e.message || String(e));
+      pendingPanel.hidden = false;
+      btnUpload.disabled = false;
+      btnClearPending.disabled = false;
+      pendingFiles.forEach((file, idx) => {
+        const li = document.createElement("li");
+        const left = document.createElement("div");
+        left.innerHTML =
+          '<div class="fname">' +
+          escapeHtml(file.name) +
+          '</div><div class="fmeta">' +
+          formatBytes(file.size) +
+          "</div>";
+        const rm = document.createElement("button");
+        rm.type = "button";
+        rm.className = "btn btn-mini btn-danger";
+        rm.textContent = "제거";
+        rm.addEventListener("click", () => {
+          pendingFiles.splice(idx, 1);
+          renderPending();
+          loadPreviewFromFirstPending().catch(() => {});
+        });
+        li.appendChild(left);
+        li.appendChild(rm);
+        pendingList.appendChild(li);
+      });
+      loadPreviewFromFirstPending().catch((e) => console.error(e));
     }
-  }
 
-  btnRefreshList.addEventListener("click", () => refreshRemoteList().catch(() => {}));
+    function escapeHtml(s) {
+      return String(s)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
 
-  refreshRemoteList().catch(() => {});
+    function formatBytes(n) {
+      if (n < 1024) return n + " B";
+      if (n < 1024 * 1024) return (n / 1024).toFixed(1) + " KB";
+      return (n / (1024 * 1024)).toFixed(1) + " MB";
+    }
+
+    function setLoading(show, text) {
+      loadingOverlay.classList.toggle("visible", show);
+      loadingOverlay.setAttribute("aria-hidden", show ? "false" : "true");
+      if (text) loadingText.textContent = text;
+    }
+
+    function showResult(url) {
+      lastViewerUrl = url;
+      resultUrlEl.href = url;
+      resultUrlEl.textContent = url;
+      resultPanel.classList.add("visible");
+      copyMsg.hidden = true;
+    }
+
+    function addFilesFromList(fileList) {
+      const incoming = Array.from(fileList || []).filter((f) =>
+        f.name.toLowerCase().endsWith(".stl")
+      );
+      if (incoming.length === 0 && fileList && fileList.length > 0) {
+        showError("STL 파일(.stl)만 추가할 수 있습니다.");
+        return;
+      }
+      clearError();
+      const names = new Set(pendingFiles.map((f) => f.name));
+      for (const f of incoming) {
+        if (!names.has(f.name)) {
+          pendingFiles.push(f);
+          names.add(f.name);
+        }
+      }
+      renderPending();
+    }
+
+    dropZone.addEventListener("click", () => fileInput.click());
+    dropZone.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        fileInput.click();
+      }
+    });
+    ["dragenter", "dragover"].forEach((ev) => {
+      dropZone.addEventListener(ev, (e) => {
+        e.preventDefault();
+        dropZone.classList.add("dragover");
+      });
+    });
+    dropZone.addEventListener("dragleave", (e) => {
+      if (!dropZone.contains(e.relatedTarget)) dropZone.classList.remove("dragover");
+    });
+    dropZone.addEventListener("drop", (e) => {
+      e.preventDefault();
+      dropZone.classList.remove("dragover");
+      addFilesFromList(e.dataTransfer && e.dataTransfer.files);
+    });
+    fileInput.addEventListener("change", () => {
+      addFilesFromList(fileInput.files);
+      fileInput.value = "";
+    });
+
+    btnClearPending.addEventListener("click", () => {
+      pendingFiles = [];
+      renderPending();
+    });
+
+    btnUpload.addEventListener("click", async () => {
+      clearError();
+      if (pendingFiles.length === 0) return;
+
+      const files = pendingFiles.slice();
+      let lastUrl = "";
+      try {
+        for (let i = 0; i < files.length; i++) {
+          setLoading(true, "업로드 중… (" + (i + 1) + "/" + files.length + ")");
+          const out = await uploadStlFile(files[i]);
+          lastUrl = out.url;
+        }
+        showResult(lastUrl);
+        pendingFiles = [];
+        renderPending();
+        await refreshRemoteList();
+      } catch (e) {
+        console.error(e);
+        showError(e.message || String(e));
+      } finally {
+        setLoading(false);
+      }
+    });
+
+    btnCopyUrl.addEventListener("click", async () => {
+      if (!lastViewerUrl) return;
+      try {
+        await navigator.clipboard.writeText(lastViewerUrl);
+        copyMsg.hidden = false;
+        setTimeout(() => {
+          copyMsg.hidden = true;
+        }, 2500);
+      } catch {
+        showError("클립보드 복사에 실패했습니다. 링크를 직접 선택해 복사해 주세요.");
+      }
+    });
+
+    btnKakaoShare.addEventListener("click", async () => {
+      if (!lastViewerUrl) return;
+      const title = "3D 모델 미리보기";
+      const text = "아래 링크에서 3D 모델을 확인할 수 있습니다.\\n" + lastViewerUrl;
+      try {
+        if (navigator.share) {
+          await navigator.share({
+            title,
+            text: "3D 모델 미리보기 링크입니다.",
+            url: lastViewerUrl,
+          });
+          return;
+        }
+      } catch (e) {
+        if (e.name === "AbortError") return;
+      }
+      try {
+        await navigator.clipboard.writeText(text);
+        alert("안내 문구와 링크를 클립보드에 복사했습니다. 카카오톡 채팅창에 붙여넣기 하세요.");
+      } catch {
+        alert(text);
+      }
+    });
+
+    async function deleteRemoteFile(filename) {
+      if (!confirm("정말 삭제하시겠습니까?")) return;
+      try {
+        const res = await fetch(workerEndpoint("/delete"), {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ filename }),
+          credentials: "include",
+        });
+        let data;
+        try {
+          data = await res.json();
+        } catch {
+          throw new Error("응답 해석 실패 (HTTP " + res.status + ")");
+        }
+        if (!res.ok || data.success === false) {
+          throw new Error(data.error || "삭제 실패");
+        }
+        await refreshRemoteList();
+      } catch (e) {
+        showError(e.message || String(e));
+      }
+    }
+
+    async function refreshRemoteList() {
+      remoteMeta.textContent = "";
+      remoteTbody.innerHTML =
+        '<tr class="empty-row"><td colspan="3">불러오는 중…</td></tr>';
+      try {
+        clearError();
+        const res = await fetch(workerEndpoint("/list"), {
+          method: "GET",
+          credentials: "include",
+        });
+        let data;
+        try {
+          data = await res.json();
+        } catch {
+          throw new Error("목록 응답을 해석할 수 없습니다 (HTTP " + res.status + ")");
+        }
+
+        if (!res.ok && data.success === false) {
+          throw new Error(data.error || "목록 조회 실패 (HTTP " + res.status + ")");
+        }
+        if (!res.ok) {
+          throw new Error(data.error || "HTTP " + res.status);
+        }
+
+        if (data.success === false && data.error) {
+          throw new Error(data.error);
+        }
+
+        const files = Array.isArray(data.files) ? data.files : [];
+        remoteMeta.textContent = files.length + "개";
+        if (files.length === 0) {
+          remoteTbody.innerHTML =
+            '<tr class="empty-row"><td colspan="3">models/ 에 STL이 없습니다.</td></tr>';
+          return;
+        }
+
+        remoteTbody.innerHTML = "";
+        for (const item of files) {
+          const name = item.filename || "";
+          const url =
+            item.url || publicViewerUrlForFilename(name);
+          const tr = document.createElement("tr");
+          const tdName = document.createElement("td");
+          tdName.textContent = name;
+          const tdLink = document.createElement("td");
+          const a = document.createElement("a");
+          a.href = url;
+          a.target = "_blank";
+          a.rel = "noopener";
+          a.textContent = url;
+          tdLink.appendChild(a);
+          const tdAct = document.createElement("td");
+          const delBtn = document.createElement("button");
+          delBtn.type = "button";
+          delBtn.className = "btn btn-mini btn-danger";
+          delBtn.textContent = "삭제";
+          delBtn.addEventListener("click", () => deleteRemoteFile(name));
+          tdAct.appendChild(delBtn);
+          tr.appendChild(tdName);
+          tr.appendChild(tdLink);
+          tr.appendChild(tdAct);
+          remoteTbody.appendChild(tr);
+        }
+      } catch (e) {
+        remoteTbody.innerHTML =
+          '<tr class="empty-row"><td colspan="3">목록을 불러오지 못했습니다.</td></tr>';
+        remoteMeta.textContent = "";
+        showError(e.message || String(e));
+      }
+    }
+
+    btnRefreshList.addEventListener("click", () =>
+      refreshRemoteList().catch(() => {})
+    );
+
+    refreshRemoteList().catch(() => {});
   </script>
 </body>
 </html>
@@ -896,15 +1320,6 @@ html:not([data-viewer]) #screen-error { display: flex; }
   <script type="module">
     import * as THREE from "three";
     import { STLLoader } from "three/addons/loaders/STLLoader.js";
-
-    const GITHUB_USERNAME = "shinhp3";
-    const REPO_NAME = "eoulrimstudio-models";
-    const GITHUB_BRANCH = "main";
-
-    function buildRawStlUrl(modelBaseName) {
-      const name = String(modelBaseName).replace(/\\.stl$/i, "").trim();
-      return \`https://raw.githubusercontent.com/\${GITHUB_USERNAME}/\${REPO_NAME}/\${GITHUB_BRANCH}/models/\${name}.stl\`;
-    }
 
     function sanitizeModelParam(raw) {
       if (!raw || typeof raw !== "string") return "";
@@ -1197,8 +1612,9 @@ html:not([data-viewer]) #screen-error { display: flex; }
       }
 
       try {
-        const url = buildRawStlUrl(slug);
-        const res = await fetch(url, { cache: "no-store" });
+        const modelName = slug;
+        const stlUrl = \`https://raw.githubusercontent.com/shinhp3/eoulrimstudio-models/main/models/\${modelName}.stl\`;
+        const res = await fetch(stlUrl, { cache: "no-store" });
         if (!res.ok) throw new Error(\`HTTP \${res.status}\`);
         const buf = await res.arrayBuffer();
         if (!buf || buf.byteLength === 0) throw new Error("empty body");
@@ -1221,13 +1637,17 @@ html:not([data-viewer]) #screen-error { display: flex; }
 const GITHUB_API = "https://api.github.com";
 const DEFAULT_BRANCH = "main";
 const MODELS_PATH = "models";
-const VIEWER_BASE = "https://eoulrimstudio-models.eoulrimstudio.workers.dev";
+const VIEWER_BASE = "https://eoulrimstudio-upload.eoulrimstudio.workers.dev";
+
+const COOKIE_NAME = "admin_session";
+const SESSION_MAX_SEC = 30 * 24 * 60 * 60;
 
 function corsHeaders() {
   return {
     "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+    "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
     "Access-Control-Allow-Headers": "Content-Type",
+    "Access-Control-Expose-Headers": "X-GitHub-Content-Sha",
   };
 }
 
@@ -1241,18 +1661,149 @@ function jsonResponse(obj, status = 200) {
   });
 }
 
-function htmlResponse(html) {
-  return new Response(html, {
-    status: 200,
-    headers: {
-      "Content-Type": "text/html; charset=utf-8",
-      ...corsHeaders(),
-    },
-  });
+function getCookie(request, name) {
+  const h = request.headers.get("Cookie");
+  if (!h) return "";
+  const parts = h.split(";");
+  for (let i = 0; i < parts.length; i++) {
+    const p = parts[i].trim();
+    if (p.indexOf(name + "=") === 0) {
+      return decodeURIComponent(p.slice(name.length + 1).trim());
+    }
+  }
+  return "";
 }
 
-function normalizeRoutePath(pathname) {
-  return pathname.replace(/\/$/, "") || "/";
+function buildSetCookieHeader(tokenValue) {
+  return (
+    COOKIE_NAME +
+    "=" +
+    encodeURIComponent(tokenValue) +
+    "; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=" +
+    SESSION_MAX_SEC
+  );
+}
+
+async function getHmacKey(secret) {
+  const enc = new TextEncoder();
+  const raw = await crypto.subtle.digest("SHA-256", enc.encode(secret));
+  return crypto.subtle.importKey("raw", raw, { name: "HMAC", hash: "SHA-256" }, false, [
+    "sign",
+    "verify",
+  ]);
+}
+
+async function createSessionCookieValue(secret) {
+  const exp = Math.floor(Date.now() / 1000) + SESSION_MAX_SEC;
+  const payload = JSON.stringify({ exp: exp, v: 1 });
+  const enc = new TextEncoder();
+  const key = await getHmacKey(secret);
+  const sigBuf = await crypto.subtle.sign("HMAC", key, enc.encode(payload));
+  const sigB64 = btoa(String.fromCharCode.apply(null, new Uint8Array(sigBuf)));
+  return btoa(payload) + "." + sigB64;
+}
+
+async function verifySessionCookie(secret, cookieVal) {
+  if (!cookieVal || typeof cookieVal !== "string") return false;
+  const dot = cookieVal.indexOf(".");
+  if (dot < 1) return false;
+  const payloadB64 = cookieVal.slice(0, dot);
+  const sigB64 = cookieVal.slice(dot + 1);
+  let payloadStr;
+  try {
+    payloadStr = atob(payloadB64);
+  } catch {
+    return false;
+  }
+  const enc = new TextEncoder();
+  let sigBytes;
+  try {
+    const bin = atob(sigB64);
+    sigBytes = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) sigBytes[i] = bin.charCodeAt(i);
+  } catch {
+    return false;
+  }
+  const key = await getHmacKey(secret);
+  const ok = await crypto.subtle.verify("HMAC", key, sigBytes, enc.encode(payloadStr));
+  if (!ok) return false;
+  let data;
+  try {
+    data = JSON.parse(payloadStr);
+  } catch {
+    return false;
+  }
+  if (!data || typeof data.exp !== "number") return false;
+  return data.exp > Math.floor(Date.now() / 1000);
+}
+
+async function requireAdminSession(request, env) {
+  const secret = env.ADMIN_PASSWORD;
+  if (!secret || typeof secret !== "string") return false;
+  const raw = getCookie(request, COOKIE_NAME);
+  if (!raw) return false;
+  return verifySessionCookie(secret, raw);
+}
+
+async function parseAuthPassword(request) {
+  const ct = (request.headers.get("content-type") || "").toLowerCase();
+  if (ct.indexOf("application/json") !== -1) {
+    try {
+      const j = await request.json();
+      return typeof j.password === "string" ? j.password : "";
+    } catch {
+      return "";
+    }
+  }
+  const fd = await request.formData();
+  const p = fd.get("password");
+  return typeof p === "string" ? p : "";
+}
+
+function passwordsEqual(a, b) {
+  if (typeof a !== "string" || typeof b !== "string") return false;
+  if (a.length !== b.length) return false;
+  let x = 0;
+  for (let i = 0; i < a.length; i++) x |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return x === 0;
+}
+
+async function handlePostAuth(request, env, requestUrl) {
+  const expected = env.ADMIN_PASSWORD;
+  if (!expected || typeof expected !== "string") {
+    return new Response(LOGIN_HTML, {
+      status: 200,
+      headers: { "Content-Type": "text/html; charset=utf-8" },
+    });
+  }
+  let pwd = "";
+  try {
+    pwd = await parseAuthPassword(request);
+  } catch {
+    return new Response(null, { status: 400 });
+  }
+  if (!pwd) {
+    return new Response(null, { status: 400 });
+  }
+  if (!passwordsEqual(pwd, expected)) {
+    return Response.redirect(new URL("/admin?err=1", requestUrl).toString(), 302);
+  }
+  const token = await createSessionCookieValue(expected);
+  const headers = new Headers();
+  headers.set("Content-Type", "text/html; charset=utf-8");
+  headers.append("Set-Cookie", buildSetCookieHeader(token));
+  return new Response(ADMIN_HTML, { headers: headers });
+}
+
+async function handleGetAdmin(request, env) {
+  if (await requireAdminSession(request, env)) {
+    return new Response(ADMIN_HTML, {
+      headers: { "Content-Type": "text/html; charset=utf-8" },
+    });
+  }
+  return new Response(LOGIN_HTML, {
+    headers: { "Content-Type": "text/html; charset=utf-8" },
+  });
 }
 
 function gitContentsPath(relPath) {
@@ -1325,6 +1876,9 @@ function requireEnv(env) {
 
 async function handleUpload(request, env) {
   try {
+    if (!(await requireAdminSession(request, env))) {
+      return jsonResponse({ success: false, error: "인증이 필요합니다." }, 401);
+    }
     const { token, username, repo } = requireEnv(env);
     let body;
     try {
@@ -1392,8 +1946,11 @@ async function handleUpload(request, env) {
   }
 }
 
-async function handleList(env) {
+async function handleList(env, request) {
   try {
+    if (!(await requireAdminSession(request, env))) {
+      return jsonResponse({ success: false, error: "인증이 필요합니다." }, 401);
+    }
     const { token, username, repo } = requireEnv(env);
     const pathUrl =
       GITHUB_API +
@@ -1439,28 +1996,327 @@ async function handleList(env) {
   }
 }
 
+async function handleDelete(request, env) {
+  try {
+    if (!(await requireAdminSession(request, env))) {
+      return jsonResponse({ success: false, error: "인증이 필요합니다." }, 401);
+    }
+    let body;
+    try {
+      body = await request.json();
+    } catch {
+      return jsonResponse({ success: false, error: "JSON 본문을 읽을 수 없습니다." }, 400);
+    }
+    const rawName = body.filename ?? body.name;
+    if (!rawName || typeof rawName !== "string") {
+      return jsonResponse({ success: false, error: "filename 필드가 필요합니다." }, 400);
+    }
+    const safeName = normalizeStlFilename(rawName);
+    if (!safeName) {
+      return jsonResponse({ success: false, error: "허용되지 않는 파일명입니다." }, 400);
+    }
+    const { token, username, repo } = requireEnv(env);
+    const relPath = MODELS_PATH + "/" + safeName;
+    const apiPath = GITHUB_API + "/repos/" + username + "/" + repo + "/contents/" + gitContentsPath(relPath);
+    let existing;
+    try {
+      existing = await githubJson(
+        "GET",
+        apiPath + "?ref=" + encodeURIComponent(DEFAULT_BRANCH),
+        token
+      );
+    } catch (e) {
+      if (e.status === 404) {
+        return jsonResponse({ success: false, error: "파일을 찾을 수 없습니다." }, 404);
+      }
+      throw e;
+    }
+    if (!existing || !existing.sha) {
+      return jsonResponse({ success: false, error: "GitHub 응답에 sha가 없습니다." }, 502);
+    }
+    await githubJson("DELETE", apiPath, token, {
+      message: "Delete STL: " + safeName,
+      sha: existing.sha,
+      branch: DEFAULT_BRANCH,
+    });
+    return jsonResponse({ success: true });
+  } catch (e) {
+    const msg = e.message || String(e);
+    const status = e.status >= 400 && e.status < 600 ? e.status : 500;
+    return jsonResponse({ success: false, error: msg }, status);
+  }
+}
+
+function recordsUtf8ToBase64(str) {
+  const bytes = new TextEncoder().encode(str);
+  let bin = "";
+  for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+  return btoa(bin);
+}
+
+async function handleGetRecords(env) {
+  try {
+    const token = env.GITHUB_TOKEN;
+    const username = env.GITHUB_USERNAME;
+    const repo = env.GITHUB_RECORDS_REPO;
+    if (!token || !username || !repo) {
+      return jsonResponse(
+        { success: false, error: "서버 설정(GITHUB_TOKEN, GITHUB_USERNAME, GITHUB_RECORDS_REPO)이 비어 있습니다." },
+        500
+      );
+    }
+
+    const apiPath =
+      GITHUB_API +
+      "/repos/" +
+      username +
+      "/" +
+      repo +
+      "/contents/" +
+      gitContentsPath("records.json") +
+      "?ref=" +
+      encodeURIComponent(DEFAULT_BRANCH);
+
+    let data;
+    try {
+      data = await githubJson("GET", apiPath, token);
+    } catch (e) {
+      if (e.status === 404) {
+        const body = JSON.stringify({ records: [] });
+        return new Response(body, {
+          headers: {
+            "Content-Type": "application/json; charset=utf-8",
+            ...corsHeaders(),
+          },
+        });
+      }
+      throw e;
+    }
+
+    if (!data.content || data.encoding !== "base64") {
+      return jsonResponse({ success: false, error: "GitHub 응답 형식이 올바르지 않습니다." }, 502);
+    }
+
+    const bin = atob(String(data.content).replace(/\s/g, ""));
+    const bytes = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    const text = new TextDecoder("utf-8").decode(bytes);
+    const sha = typeof data.sha === "string" ? data.sha : "";
+    const headers = new Headers({
+      "Content-Type": "application/json; charset=utf-8",
+      ...corsHeaders(),
+    });
+    headers.set("Access-Control-Expose-Headers", "X-GitHub-Content-Sha");
+    if (sha) headers.set("X-GitHub-Content-Sha", sha);
+    return new Response(text, { headers });
+  } catch (e) {
+    const msg = e.message || String(e);
+    const status = e.status >= 400 && e.status < 600 ? e.status : 500;
+    return jsonResponse({ success: false, error: msg }, status);
+  }
+}
+
+async function handlePutRecords(request, env) {
+  try {
+    const token = env.GITHUB_TOKEN;
+    const username = env.GITHUB_USERNAME;
+    const repo = env.GITHUB_RECORDS_REPO;
+    if (!token || !username || !repo) {
+      return jsonResponse(
+        { success: false, error: "서버 설정(GITHUB_TOKEN, GITHUB_USERNAME, GITHUB_RECORDS_REPO)이 비어 있습니다." },
+        500
+      );
+    }
+
+    let body;
+    try {
+      body = await request.json();
+    } catch {
+      return jsonResponse({ success: false, error: "JSON 본문을 읽을 수 없습니다." }, 400);
+    }
+
+    if (!Array.isArray(body.records)) {
+      return jsonResponse({ success: false, error: "records 배열이 필요합니다." }, 400);
+    }
+
+    const payload = JSON.stringify({ records: body.records }, null, 2);
+    const content = recordsUtf8ToBase64(payload);
+    const apiPath =
+      GITHUB_API + "/repos/" + username + "/" + repo + "/contents/" + gitContentsPath("records.json");
+
+    const putBody = {
+      message: "Update records.json",
+      content,
+      branch: DEFAULT_BRANCH,
+    };
+    if (typeof body.sha === "string" && body.sha.length > 0) putBody.sha = body.sha;
+
+    await githubJson("PUT", apiPath, token, putBody);
+    return jsonResponse({ success: true });
+  } catch (e) {
+    const msg = e.message || String(e);
+    let status = 500;
+    if (typeof e.status === "number" && e.status >= 400 && e.status < 600) status = e.status;
+    return jsonResponse({ success: false, error: msg }, status);
+  }
+}
+
+const DEFAULT_GITHUB_TOOLS_REPO = "eoulrimstudio-tools";
+
+async function handleGetTools(env) {
+  try {
+    const token = env.GITHUB_TOKEN;
+    const username = env.GITHUB_USERNAME;
+    const repo = env.GITHUB_TOOLS_REPO || DEFAULT_GITHUB_TOOLS_REPO;
+    if (!token || !username || !repo) {
+      return jsonResponse(
+        { success: false, error: "서버 설정(GITHUB_TOKEN, GITHUB_USERNAME, GITHUB_TOOLS_REPO)이 비어 있습니다." },
+        500
+      );
+    }
+
+    const apiPath =
+      GITHUB_API +
+      "/repos/" +
+      username +
+      "/" +
+      repo +
+      "/contents/" +
+      gitContentsPath("tools.json") +
+      "?ref=" +
+      encodeURIComponent(DEFAULT_BRANCH);
+
+    let data;
+    try {
+      data = await githubJson("GET", apiPath, token);
+    } catch (e) {
+      if (e.status === 404) {
+        const body = JSON.stringify({ items: [] });
+        return new Response(body, {
+          headers: {
+            "Content-Type": "application/json; charset=utf-8",
+            ...corsHeaders(),
+          },
+        });
+      }
+      throw e;
+    }
+
+    if (!data.content || data.encoding !== "base64") {
+      return jsonResponse({ success: false, error: "GitHub 응답 형식이 올바르지 않습니다." }, 502);
+    }
+
+    const bin = atob(String(data.content).replace(/\s/g, ""));
+    const bytes = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    const text = new TextDecoder("utf-8").decode(bytes);
+    const sha = typeof data.sha === "string" ? data.sha : "";
+    const headers = new Headers({
+      "Content-Type": "application/json; charset=utf-8",
+      ...corsHeaders(),
+    });
+    headers.set("Access-Control-Expose-Headers", "X-GitHub-Content-Sha");
+    if (sha) headers.set("X-GitHub-Content-Sha", sha);
+    return new Response(text, { headers });
+  } catch (e) {
+    const msg = e.message || String(e);
+    const status = e.status >= 400 && e.status < 600 ? e.status : 500;
+    return jsonResponse({ success: false, error: msg }, status);
+  }
+}
+
+async function handlePutTools(request, env) {
+  try {
+    const token = env.GITHUB_TOKEN;
+    const username = env.GITHUB_USERNAME;
+    const repo = env.GITHUB_TOOLS_REPO || DEFAULT_GITHUB_TOOLS_REPO;
+    if (!token || !username || !repo) {
+      return jsonResponse(
+        { success: false, error: "서버 설정(GITHUB_TOKEN, GITHUB_USERNAME, GITHUB_TOOLS_REPO)이 비어 있습니다." },
+        500
+      );
+    }
+
+    let body;
+    try {
+      body = await request.json();
+    } catch {
+      return jsonResponse({ success: false, error: "JSON 본문을 읽을 수 없습니다." }, 400);
+    }
+
+    if (!Array.isArray(body.items)) {
+      return jsonResponse({ success: false, error: "items 배열이 필요합니다." }, 400);
+    }
+
+    const payload = JSON.stringify({ items: body.items }, null, 2);
+    const content = recordsUtf8ToBase64(payload);
+    const apiPath =
+      GITHUB_API + "/repos/" + username + "/" + repo + "/contents/" + gitContentsPath("tools.json");
+
+    const putBody = {
+      message: "Update tools.json",
+      content,
+      branch: DEFAULT_BRANCH,
+    };
+    if (typeof body.sha === "string" && body.sha.length > 0) putBody.sha = body.sha;
+
+    await githubJson("PUT", apiPath, token, putBody);
+    return jsonResponse({ success: true });
+  } catch (e) {
+    const msg = e.message || String(e);
+    let status = 500;
+    if (typeof e.status === "number" && e.status >= 400 && e.status < 600) status = e.status;
+    return jsonResponse({ success: false, error: msg }, status);
+  }
+}
+
 export default {
   async fetch(request, env, ctx) {
     if (request.method === "OPTIONS") {
       return new Response(null, { status: 204, headers: corsHeaders() });
     }
 
-    const url = new URL(request.url);
-    const pathname = normalizeRoutePath(url.pathname);
+    const path = new URL(request.url).pathname;
 
-    if (pathname === "/upload" && request.method === "POST") {
+    if (path === "/records" && request.method === "GET") {
+      return handleGetRecords(env);
+    }
+
+    if (path === "/records" && request.method === "PUT") {
+      return handlePutRecords(request, env);
+    }
+
+    if (path === "/tools" && request.method === "GET") {
+      return handleGetTools(env);
+    }
+
+    if (path === "/tools" && request.method === "PUT") {
+      return handlePutTools(request, env);
+    }
+
+    if (path === "/upload" && request.method === "POST") {
       return handleUpload(request, env);
     }
 
-    if (pathname === "/list" && request.method === "GET") {
-      return handleList(env);
+    if (path === "/list" && request.method === "GET") {
+      return handleList(env, request);
+    }
+
+    if (path === "/delete" && request.method === "DELETE") {
+      return handleDelete(request, env);
+    }
+
+    if (path === "/auth" && request.method === "POST") {
+      return handlePostAuth(request, env, request.url);
     }
 
     if (request.method === "GET") {
-      if (pathname === "/admin") {
-        return htmlResponse(ADMIN_HTML);
+      if (path === "/admin" || path === "/admin/index.html") {
+        return handleGetAdmin(request, env);
       }
-      return htmlResponse(VIEWER_HTML);
+      return new Response(VIEWER_HTML, {
+        headers: { "Content-Type": "text/html; charset=utf-8" },
+      });
     }
 
     return jsonResponse({ success: false, error: "Method not allowed" }, 405);
