@@ -1,27 +1,30 @@
 # eoulrimstudio-models
 
-GitHub Pages로 호스팅하는 정적 STL 뷰어 저장소입니다. Cloudflare Worker는 사용하지 않습니다.
+STL 뷰어는 **GitHub Pages**, 업로드·삭제·관리자 로그인은 **Cloudflare Worker**로 나눈 구성입니다.
 
-## 구조
+## 역할 분담
 
-- `index.html` — `?model=파일이름`(.stl 제외)으로 `models/` 안의 STL을 불러와 표시합니다.
-- `models/` — 여기에 `.stl` 파일을 넣고 커밋·푸시하면 Pages에 반영됩니다.
-- `admin/index.html` — 배포 안내, 공개 저장소 기준 GitHub API로 `models/` 목록 표시, 로컬 STL 미리보기(브라우저 전용).
+| 구분 | 주소(예시) | 내용 |
+|------|------------|------|
+| 뷰어 | `https://shinhp3.github.io/eoulrimstudio-models/?model=이름` | `index.html`이 `models/`의 STL을 불러옵니다. |
+| 업로드·목록·삭제·로그인 | Worker 대시보드에 등록한 Worker 도메인 `/admin` | 저장소 루트의 `worker.js` 코드를 붙여넣어 배포합니다. |
 
-## GitHub Pages 설정
+Worker 루트(`/`)로 접속하면 같은 Pages 뷰어로 **리다이렉트**됩니다.
 
-1. 저장소 **Settings → Pages**
-2. **Build and deployment**: Branch를 배포에 쓰는 브랜치(예: `main`)로 지정하고, 폴더는 **/(root)** 를 선택합니다.
-3. 몇 분 뒤 `https://<사용자명>.github.io/<저장소명>/` 에서 루트 뷰어가 열립니다.
+## GitHub Pages
 
-## 뷰어 URL 예시
+1. 저장소 **Settings → Pages**에서 브랜치(예: `main`) · **/(root)** 선택
+2. `models/`에 `.stl` 추가 후 푸시 → Pages에 반영
 
-`https://<사용자명>.github.io/<저장소명>/?model=mybowl`
+## Cloudflare Worker
 
-위 주소는 `models/mybowl.stl` 과 대응합니다.
+1. Cloudflare 대시보드에서 Worker 편집기에 **`worker.js` 전체**를 붙여넣고 배포합니다.
+2. 아래 **Secrets / 변수**를 설정합니다.  
+   - `ADMIN_PASSWORD`, `GITHUB_TOKEN`, `GITHUB_USERNAME`, `GITHUB_REPO`  
+   - `GITHUB_RECORDS_REPO` (records/API를 쓰는 경우)
+3. 업로드 후 뷰어 링크에 쓰이는 주소는 코드 안 **`VIEWER_BASE`** 와 동일해야 합니다. (현재 GitHub Pages 기준으로 맞춰 두었습니다.)
+4. Worker 도메인이 바뀌면 `index.html` 안의 관리자 링크도 같은 호스트로 수정하세요.
 
-## 관리 페이지
+## 정적 admin 페이지
 
-`/admin/index.html` 에서 `<meta name="github-repo" content="owner/repo">` 를 본인 저장소로 바꿉니다. 저장소가 비공개면 목록 조회가 되지 않을 수 있습니다.
-
-모델 추가·삭제는 Git으로 `models/` 만 수정하면 됩니다.
+`/admin/index.html`(Pages)은 배포 안내·공개 API 목록·로컬 미리보기용입니다. 실제 GitHub에 파일을 쓰는 업로드는 Worker에서만 됩니다.
