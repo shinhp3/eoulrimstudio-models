@@ -3,25 +3,20 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>STL 3D 뷰어 · 자동 견적</title>
+  <title>3D 모델 뷰어</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600&display=swap" rel="stylesheet" />
   <style>
-/* ═══════════════════════════════════════════════
-   디자인 토큰 (CSS 변수)
-   여기서 색상·모서리 등을 한 곳에서 관리합니다
-═══════════════════════════════════════════════ */
 :root {
-  --bg: #f8f9fb;           /* 페이지 전체 배경 */
-  --surface: #ffffff;       /* 카드·패널 배경 */
-  --border: #e2e5ed;        /* 구분선 색상 */
-  --text: #111827;          /* 본문 텍스트 */
-  --muted: #6b7280;         /* 보조 텍스트 (라벨, 힌트) */
-  --accent: #2f6bff;        /* 포인트 컬러 (버튼, 강조) */
-  --accent-dim: rgba(47, 107, 255, 0.10); /* 포인트 컬러 연하게 */
-  --success: #16a34a;       /* 금액 등 긍정 강조 */
-  --radius: 12px;           /* 카드 모서리 둥글기 */
+  --bg: #f8f9fb;
+  --surface: #ffffff;
+  --border: #e2e5ed;
+  --text: #111827;
+  --muted: #6b7280;
+  --accent: #2f6bff;
+  --accent-dim: rgba(47, 107, 255, 0.10);
+  --radius: 12px;
 }
 
 * {
@@ -44,7 +39,7 @@ body {
 }
 
 header {
-  margin-bottom: 20px;
+  margin-bottom: 16px;
 }
 
 header h1 {
@@ -60,12 +55,12 @@ header p {
   color: var(--muted);
 }
 
-header code {
-  font-size: 0.88em;
-  background: var(--bg);
-  padding: 2px 6px;
-  border-radius: 6px;
-  border: 1px solid var(--border);
+.viewer-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
 }
 
 .viewer-card {
@@ -73,113 +68,13 @@ header code {
   border: 1px solid var(--border);
   border-radius: var(--radius);
   overflow: hidden;
-  margin-bottom: 20px;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
 }
 
-.viewers-actions {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 18px;
-}
-
-.viewers-actions .export-btn:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
-}
-
-.main-add-drop {
+.slot-viewport {
   position: relative;
-  min-height: 132px;
-  margin-bottom: 20px;
-  border-radius: var(--radius);
-  border: 1px dashed var(--border);
+  height: min(62vh, 520px);
   background: linear-gradient(160deg, #f0f4ff 0%, #e8edf8 100%);
-  cursor: pointer;
-  transition: border-color 0.15s, background 0.15s, outline 0.15s;
-}
-
-.main-add-drop:hover {
-  border-color: #c5d0e8;
-}
-
-.main-add-drop.dragover {
-  outline: 2px dashed var(--accent);
-  outline-offset: -4px;
-  background: var(--accent-dim);
-  border-color: var(--accent);
-}
-
-.main-add-drop .main-drop-inner {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 28px 20px;
-  color: var(--muted);
-  font-size: 0.95rem;
-  text-align: center;
-  pointer-events: none;
-}
-
-.main-add-drop .main-drop-inner svg {
-  width: 44px;
-  height: 44px;
-  opacity: 0.45;
-}
-
-.main-add-drop .main-drop-sub {
-  font-size: 0.82rem;
-  max-width: 420px;
-  line-height: 1.45;
-}
-
-.slot-toolbar-top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  padding: 10px 14px;
-  border-bottom: 1px solid var(--border);
-  background: rgba(248, 249, 251, 0.9);
-}
-
-.slot-title {
-  font-size: 0.88rem;
-  font-weight: 600;
-  color: var(--text);
-}
-
-.slot-toolbar-top button {
-  font: inherit;
-  font-size: 0.78rem;
-  padding: 6px 12px;
-  border-radius: 8px;
-  border: 1px solid var(--border);
-  background: #fff;
-  color: var(--muted);
-  cursor: pointer;
-}
-
-.slot-toolbar-top button:hover {
-  border-color: #fecaca;
-  color: #b91c1c;
-}
-
-.slot-drop-zone {
-  position: relative;
-  height: min(38vh, 360px);
-  background: linear-gradient(160deg, #f0f4ff 0%, #e8edf8 100%);
-  cursor: pointer;
-}
-
-.slot-drop-zone.dragover {
-  outline: 2px dashed var(--accent);
-  outline-offset: -6px;
-  background: var(--accent-dim);
 }
 
 .slot-canvas-host {
@@ -187,534 +82,20 @@ header code {
   height: 100%;
 }
 
-.drop-hint {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  pointer-events: none;
-  color: var(--muted);
-  font-size: 0.95rem;
-  gap: 8px;
-  transition: opacity 0.25s;
-}
-
-.drop-hint-sub {
-  font-size: 0.82rem;
-}
-
-.slot-drop-zone.has-model .drop-hint {
-  opacity: 0;
-}
-
-.drop-hint svg {
-  width: 48px;
-  height: 48px;
-  opacity: 0.4;
-}
-
-.toolbar {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 10px;
-  padding: 12px 14px;
-  border-top: 1px solid var(--border);
-  background: rgba(255, 255, 255, 0.95);
-}
-
-.toolbar button,
-.toolbar label.file-btn {
-  font: inherit;
-  font-size: 0.85rem;
-  padding: 8px 14px;
-  border-radius: 8px;
-  border: 1px solid var(--border);
-  background: #ffffff;
-  color: var(--text);
-  cursor: pointer;
-  transition: border-color 0.15s, color 0.15s;
-}
-
-.toolbar button:hover,
-.toolbar label.file-btn:hover {
-  border-color: var(--accent);
-  color: var(--accent);
-}
-
-.toolbar input[type="file"] {
-  display: none;
-}
-
-.toolbar .filename {
-  flex: 1;
-  min-width: 0;
-  font-size: 0.8rem;
-  color: var(--muted);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.toolbar button.btn-clear {
-  border-color: #fecaca;
-  color: #b91c1c;
-  background: #fef2f2;
-}
-
-.toolbar button.btn-clear:hover {
-  border-color: #b91c1c;
-  color: #7f1d1d;
-}
-
-.export-btn {
-  font: inherit;
-  font-size: 0.85rem;
-  padding: 8px 16px;
-  border-radius: 8px;
-  border: 1px solid var(--accent);
-  background: var(--accent-dim);
-  color: var(--accent);
-  cursor: pointer;
-  font-weight: 500;
-  transition: background 0.15s, transform 0.1s;
-}
-
-.export-btn:hover {
-  background: rgba(47, 107, 255, 0.2);
-}
-
-.export-btn:active {
-  transform: scale(0.97);
-}
-
-.export-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-section.quote {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 20px 22px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
-}
-
-section.quote h2 {
-  font-size: 1.05rem;
-  font-weight: 600;
-  margin: 0 0 16px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-section.quote h2::before {
-  content: "";
-  width: 4px;
-  height: 18px;
-  background: var(--accent);
-  border-radius: 2px;
-}
-
-.params {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 14px;
-  margin-bottom: 20px;
-}
-
-.field label {
-  display: block;
-  font-size: 0.75rem;
-  color: var(--muted);
-  margin-bottom: 4px;
-}
-
-.field input {
-  width: 100%;
-  padding: 8px 10px;
-  border-radius: 8px;
-  border: 1px solid var(--border);
-  background: var(--bg);
-  color: var(--text);
-  font: inherit;
-  font-size: 0.9rem;
-  transition: border-color 0.15s;
-}
-
-.field input:focus {
-  outline: none;
-  border-color: var(--accent);
-}
-
-.stats {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-  gap: 12px;
-  margin-bottom: 18px;
-}
-
-.stat {
-  padding: 12px 14px;
-  background: var(--bg);
-  border-radius: 8px;
-  border: 1px solid var(--border);
-}
-
-.stat .label {
-  font-size: 0.72rem;
-  color: var(--muted);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-
-.stat .value {
-  font-size: 1rem;
-  font-weight: 500;
-  margin-top: 4px;
-  font-variant-numeric: tabular-nums;
-}
-
-.estimate-total {
-  padding: 16px 18px;
-  background: linear-gradient(135deg, var(--accent-dim) 0%, rgba(248, 249, 251, 0.9) 100%);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 8px;
-}
-
-.estimate-total .label {
-  font-size: 0.9rem;
-  color: var(--muted);
-}
-
-.estimate-total .amount {
-  font-size: 1.45rem;
-  font-weight: 600;
-  color: var(--success);
-  font-variant-numeric: tabular-nums;
-}
-
-.disclaimer {
-  margin-top: 14px;
-  font-size: 0.75rem;
-  color: var(--muted);
-  line-height: 1.55;
-}
-
-.empty-quote {
-  color: var(--muted);
-  font-size: 0.9rem;
-  padding: 8px 0;
-}
-
-/* ── 모델 사이즈 바 ── */
-.size-bar {
-  display: none;
-  align-items: center;
-  gap: 16px;
-  padding: 8px 14px;
-  border-top: 1px solid var(--border);
-  background: rgba(248, 249, 251, 0.95);
-  flex-wrap: wrap;
-}
-.size-bar.visible { display: flex; }
-.size-bar-label {
-  font-size: 0.75rem;
-  color: var(--muted);
-  white-space: nowrap;
-}
-.size-dims {
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-.size-dim {
-  display: flex;
-  align-items: baseline;
-  gap: 3px;
-  font-size: 0.85rem;
-}
-.size-dim .ax {
-  font-size: 0.72rem;
-  font-weight: 600;
-  color: var(--muted);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  min-width: 12px;
-}
-.size-dim .vl {
-  font-variant-numeric: tabular-nums;
-  font-weight: 500;
-  color: var(--text);
-}
-.size-dim .un {
-  font-size: 0.72rem;
-  color: var(--muted);
-}
-
-/* ── 석고 반죽량 계산기 ── */
-section.plaster {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 20px 22px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
-  margin-bottom: 20px;
-}
-section.plaster h2 {
-  font-size: 1.05rem;
-  font-weight: 600;
-  margin: 0 0 16px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-section.plaster h2::before {
-  content: "";
-  width: 4px;
-  height: 18px;
-  background: #e67e22;
-  border-radius: 2px;
-}
-.plaster-vol-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 16px;
-  flex-wrap: wrap;
-}
-.plaster-vol-row .vol-badge {
-  font-size: 0.85rem;
-  color: var(--muted);
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 6px 12px;
-  font-variant-numeric: tabular-nums;
-}
-.plaster-vol-row .vol-badge strong {
-  color: var(--text);
-  font-weight: 600;
-}
-.plaster-margin-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 18px;
-}
-.plaster-margin-row label {
-  font-size: 0.82rem;
-  color: var(--muted);
-  white-space: nowrap;
-  min-width: 40px;
-}
-.plaster-margin-row input[type=range] {
-  flex: 1;
-  accent-color: #e67e22;
-}
-.plaster-margin-val {
-  font-size: 0.82rem;
-  font-weight: 600;
-  color: var(--text);
-  min-width: 36px;
-  text-align: right;
-}
-.plaster-results {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-  margin-bottom: 14px;
-}
-.plaster-box {
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 14px 16px;
-}
-.plaster-box .p-label {
-  font-size: 0.72rem;
-  color: var(--muted);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  margin-bottom: 6px;
-}
-.plaster-box .p-actual {
-  font-size: 1.9rem;
-  font-weight: 700;
-  color: var(--text);
-  font-variant-numeric: tabular-nums;
-  line-height: 1.15;
-}
-.plaster-box .p-unit {
-  font-size: 0.85rem;
-  font-weight: 400;
-  color: var(--muted);
-}
-.plaster-box .p-recommend {
-  margin-top: 8px;
-  font-size: 0.82rem;
-  color: #e67e22;
-  font-variant-numeric: tabular-nums;
-}
-.plaster-box .p-recommend span {
-  font-weight: 700;
-  font-size: 0.9rem;
-}
-.plaster-box .p-recommend span {
-  font-weight: 700;
-  font-size: 0.9rem;
-}
-/* 뷰어별 개별 breakdown */
-.p-breakdown-wrap {
-  margin-top: 14px;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  overflow: hidden;
-}
-.p-breakdown-title {
-  font-size: 0.72rem;
-  font-weight: 600;
-  color: var(--muted);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  padding: 8px 14px;
-  background: var(--bg);
-  border-bottom: 1px solid var(--border);
-}
-.p-breakdown-row {
-  padding: 10px 14px;
-  border-bottom: 1px solid var(--border);
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 6px 12px;
-}
-.p-breakdown-row:last-child {
-  border-bottom: none;
-}
-.p-breakdown-name {
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: var(--text);
-  min-width: 100px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 200px;
-}
-.p-breakdown-vals {
-  display: flex;
-  align-items: baseline;
-  gap: 6px;
-  flex-wrap: wrap;
-}
-.p-bv-item {
-  font-size: 0.88rem;
-  color: var(--muted);
-}
-.p-bv-item strong {
-  font-size: 0.95rem;
-  font-weight: 700;
-  color: var(--text);
-  font-variant-numeric: tabular-nums;
-}
-.p-bv-item em {
-  font-style: normal;
-  font-size: 0.72rem;
-  color: var(--muted);
-  margin-left: 1px;
-}
-.p-bv-rec {
-  font-size: 0.78rem;
-  color: #e67e22;
-  font-weight: 600;
-}
-.p-bv-sep {
-  color: var(--border);
-  font-size: 0.85rem;
-}
-.plaster-empty {
-  color: var(--muted);
-  font-size: 0.9rem;
-  padding: 8px 0;
-}
-.plaster-note {
-  margin-top: 12px;
-  font-size: 0.72rem;
-  color: var(--muted);
-  line-height: 1.55;
-}
-
-/* ── 석고량 역산 행 ── */
-.plaster-g-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-  margin-top: 14px;
-  padding: 12px 14px;
-  background: #fff8f0;
-  border: 1px solid #f0d9c0;
-  border-radius: 10px;
-}
-.plaster-g-label {
-  font-size: 0.8rem;
-  color: #b45309;
-  font-weight: 600;
-  white-space: nowrap;
-}
-.plaster-g-row input[type=number] {
-  width: 110px;
-  padding: 6px 10px;
-  border-radius: 8px;
-  border: 1px solid #f0d9c0;
-  background: #fff;
-  font: inherit;
-  font-size: 0.9rem;
-  color: var(--text);
-  transition: border-color 0.15s;
-}
-.plaster-g-row input[type=number]:focus {
-  outline: none;
-  border-color: #e67e22;
-}
-.plaster-g-unit {
-  font-size: 0.82rem;
-  color: var(--muted);
-}
-.plaster-g-arrow {
-  font-size: 0.82rem;
-  color: var(--muted);
-  margin-left: 4px;
-}
-#plaster-g-water {
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: #e67e22;
-  font-variant-numeric: tabular-nums;
-}
-
-/* ── 컬러 피커 ── */
+/* 컬러 피커 */
 .color-wrap {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-left: auto;
+  flex-wrap: wrap;
 }
+
 .color-wrap-label {
   font-size: 0.82rem;
   color: var(--muted);
   white-space: nowrap;
 }
+
 #model-color-picker {
   width: 36px;
   height: 32px;
@@ -728,11 +109,13 @@ section.plaster h2::before {
 }
 #model-color-picker::-webkit-color-swatch-wrapper { padding: 0; border-radius: 6px; }
 #model-color-picker::-webkit-color-swatch { border: none; border-radius: 6px; }
+
 .color-presets {
   display: flex;
   gap: 5px;
   flex-wrap: wrap;
 }
+
 .color-preset {
   width: 22px;
   height: 22px;
@@ -745,7 +128,7 @@ section.plaster h2::before {
 .color-preset:hover { transform: scale(1.15); }
 .color-preset.active { border-color: var(--text); }
 
-/* ── 부트 화면 (로딩 / 모델 없음) ── */
+/* 부트 화면 */
 .boot-screen {
   min-height: 100vh;
   display: none;
@@ -820,121 +203,24 @@ html:not([data-viewer]) #screen-error { display: flex; }
   <div id="screen-error" class="boot-screen">
     <div class="boot-inner">
       <h1>모델을 찾을 수 없습니다</h1>
-      <p class="boot-muted">URL에 <code>?model=파일이름</code>을 확인하거나, 저장소의 <code>models/</code> 경로에 해당 STL이 있는지 확인해 주세요.</p>
+      <p class="boot-muted">올바른 링크인지 확인해 주세요. 주소에 <code>?model=파일이름</code> 형태가 포함되어 있어야 하며, 해당 STL이 제공 경로에 있어야 합니다.</p>
     </div>
   </div>
   <div id="app-main">
   <div class="wrap">
     <header>
-      <h1>STL 3D 뷰어 · 자동 견적</h1>
-      <p>이 페이지는 URL의 <code>?model=</code>에 맞는 STL을 GitHub에서 불러옵니다. 필요하면 아래에서 STL을 <strong>드롭·선택</strong>해 뷰를 더 추가할 수 있습니다. <strong>드래그로 회전</strong>, <strong>휠로 줌</strong>. 조명·카메라는 고정입니다. 하단 견적·석고 계산은 모든 뷰를 합산합니다.</p>
+      <h1>3D 미리보기</h1>
+      <p>드래그로 회전 · 휠로 줌 · 한 손가락 드래그 / 두 손가락으로 확대(모바일)</p>
     </header>
 
-    <div class="viewers-actions">
-      <button type="button" id="btn-clear-all" class="btn-clear">모든 뷰 비우기</button>
-      <button type="button" id="btn-export-all" class="export-btn" disabled>⬇ 전체 HTML (한 파일)</button>
+    <div class="viewer-top">
       <div class="color-wrap">
         <span class="color-wrap-label">모델 색상</span>
         <input type="color" id="model-color-picker" value="#a3f958" title="모델 색상 선택" />
         <div class="color-presets" id="color-presets"></div>
       </div>
     </div>
-    <div id="main-add-drop" class="main-add-drop" role="button" tabindex="0" aria-label="STL을 여기에 놓거나 클릭하여 추가">
-      <input type="file" id="main-add-files" multiple accept=".stl,.STL" hidden />
-      <div class="main-drop-inner">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" /></svg>
-        <span><strong>STL을 여기에 드롭</strong>하거나 클릭해 선택</span>
-        <span class="main-drop-sub">여러 파일을 한 번에 올리면 아래에 뷰 카드가 순서대로 생깁니다.</span>
-      </div>
-    </div>
     <div id="viewers-root"></div>
-
-    <!-- ── 석고 반죽량 계산기 ── -->
-    <section class="plaster" aria-labelledby="plaster-title">
-      <h2 id="plaster-title">석고 반죽량 계산기</h2>
-      <div id="plaster-content">
-        <div class="plaster-vol-row">
-          <span class="vol-badge">체적 <strong id="plaster-vol-display">—</strong> mm³</span>
-          <span class="vol-badge"><strong id="plaster-vol-cc">—</strong></span>
-          <label style="display:flex;align-items:center;gap:6px;font-size:0.82rem;color:var(--muted);margin-left:4px;">
-            직접 입력
-            <input type="number" id="plaster-vol-manual" min="0" step="1" placeholder="mm³ 입력"
-              style="width:120px;padding:6px 8px;border-radius:8px;border:1px solid var(--border);font:inherit;font-size:0.85rem;background:var(--bg);color:var(--text);" />
-            <span>mm³</span>
-          </label>
-        </div>
-        <div class="plaster-margin-row">
-          <label>여유분</label>
-          <input type="range" id="plaster-margin" min="0" max="30" step="5" value="10" />
-          <span class="plaster-margin-val" id="plaster-margin-out">+10%</span>
-        </div>
-        <div class="plaster-results">
-          <div class="plaster-box">
-            <div class="p-label">석고 (합산)</div>
-            <div class="p-actual" id="p-plaster-actual">—<small class="p-unit"> g</small></div>
-            <div class="p-recommend">추천값 → <span id="p-plaster-rec">—</span> g</div>
-          </div>
-          <div class="plaster-box">
-            <div class="p-label">물 (합산)</div>
-            <div class="p-actual" id="p-water-actual">—<small class="p-unit"> mL</small></div>
-            <div class="p-recommend">추천값 → <span id="p-water-rec">—</span> mL</div>
-          </div>
-        </div>
-        <div id="plaster-breakdown" hidden></div>
-
-        <!-- 석고량 직접 입력 → 물량 역산 -->
-        <div class="plaster-g-row">
-          <span class="plaster-g-label">석고량으로 역산</span>
-          <input type="number" id="plaster-g-input" min="0" step="10" placeholder="석고 g 입력" />
-          <span class="plaster-g-unit">g</span>
-          <span class="plaster-g-arrow">→ 물</span>
-          <strong id="plaster-g-water">—</strong>
-          <span class="plaster-g-unit">mL</span>
-        </div>
-
-        <p class="plaster-note">
-          물:석고 = 70:100 기준 · 실측 2회 평균 계수 적용 (석고 ×1.1163 / 물 ×0.78141)<br>
-          추천값 물량은 <em>석고 추천값 × 0.70</em>으로 비율 일치 보장. 석고량 역산은 입력값 × 0.70.
-        </p>
-      </div>
-    </section>
-
-    <section class="quote" aria-labelledby="quote-title">
-      <h2 id="quote-title">자동 견적</h2>
-      <div id="quote-empty" class="empty-quote">STL을 불러오면 치수·볼륨·예상 비용이 표시됩니다.</div>
-      <div id="quote-content" hidden>
-        <div class="params">
-          <div class="field">
-            <label for="mat-price">재료 단가 (원/cm³)</label>
-            <input type="number" id="mat-price" min="0" step="1" value="12" />
-          </div>
-          <div class="field">
-            <label for="hour-rate">기계·노무 시간당 (원/시간)</label>
-            <input type="number" id="hour-rate" min="0" step="100" value="5000" />
-          </div>
-          <div class="field">
-            <label for="density">재료 밀도 (g/cm³, 참고용)</label>
-            <input type="number" id="density" min="0" step="0.01" value="1.24" />
-          </div>
-          <div class="field">
-            <label for="speed">가상 출력 속도 (mm³/시간)</label>
-            <input type="number" id="speed" min="1" step="100" value="12000" title="시간 추정에 사용하는 단순 휴리스틱" />
-          </div>
-        </div>
-
-        <div class="stats" id="stats"></div>
-
-        <div class="estimate-total">
-          <span class="label">예상 합계 (재료 + 시간)</span>
-          <span class="amount" id="total-price">0원</span>
-        </div>
-
-        <p class="disclaimer">
-          볼륨은 닫힌 메쉬를 가정한 삼각형 합산 방식입니다. 구멍이 있거나 자가교차가 있으면 오차가 클 수 있습니다.
-          시간은 mm³/시간으로 단순 환산한 참고값이며, 실제 슬라이서·충전률·지지대에 따라 달라집니다.
-        </p>
-      </div>
-    </section>
   </div>
   </div>
 
@@ -950,21 +236,15 @@ html:not([data-viewer]) #screen-error { display: flex; }
     import * as THREE from "three";
     import { STLLoader } from "three/addons/loaders/STLLoader.js";
 
-    /** GitHub raw 경로 — 배포 전 본인 저장소에 맞게 수정하세요. */
     const GITHUB_USERNAME = "shinhp3";
     const REPO_NAME = "eoulrimstudio-models";
     const GITHUB_BRANCH = "main";
 
-    /**
-     * model 파라미터 값(확장자 유무 무관)으로 raw STL URL 생성.
-     * 예: mold-001 → .../models/mold-001.stl
-     */
     function buildRawStlUrl(modelBaseName) {
       const name = String(modelBaseName).replace(/\.stl$/i, "").trim();
       return `https://raw.githubusercontent.com/${GITHUB_USERNAME}/${REPO_NAME}/${GITHUB_BRANCH}/models/${name}.stl`;
     }
 
-    /** 경로 조작 방지 — 파일명으로 허용할 문자만 통과 */
     function sanitizeModelParam(raw) {
       if (!raw || typeof raw !== "string") return "";
       const base = raw.trim().replace(/\.stl$/i, "");
@@ -972,43 +252,6 @@ html:not([data-viewer]) #screen-error { display: flex; }
       return base;
     }
 
-    // ── 볼륨/면적 계산 ──────────────────────────────────────────
-    function computeVolumeMm3(geometry) {
-      const pos = geometry.attributes.position;
-      const vA = new THREE.Vector3(), vB = new THREE.Vector3(), vC = new THREE.Vector3();
-      let sum = 0;
-      for (let i = 0; i < pos.count; i += 3) {
-        vA.fromBufferAttribute(pos, i);
-        vB.fromBufferAttribute(pos, i + 1);
-        vC.fromBufferAttribute(pos, i + 2);
-        sum += vA.dot(vB.cross(vC)) / 6;
-      }
-      return Math.abs(sum);
-    }
-
-    function computeSurfaceAreaMm2(geometry) {
-      const pos = geometry.attributes.position;
-      const ab = new THREE.Vector3(), ac = new THREE.Vector3();
-      const vA = new THREE.Vector3(), vB = new THREE.Vector3(), vC = new THREE.Vector3();
-      let area = 0;
-      for (let i = 0; i < pos.count; i += 3) {
-        vA.fromBufferAttribute(pos, i);
-        vB.fromBufferAttribute(pos, i + 1);
-        vC.fromBufferAttribute(pos, i + 2);
-        ab.subVectors(vB, vA); ac.subVectors(vC, vA);
-        area += ab.cross(ac).length() * 0.5;
-      }
-      return area;
-    }
-
-    function formatMm(n) {
-      return n >= 100 ? n.toFixed(1) : n >= 10 ? n.toFixed(2) : n.toFixed(3);
-    }
-    function formatNum(n, digits) {
-      return new Intl.NumberFormat("ko-KR", { maximumFractionDigits: digits, minimumFractionDigits: 0 }).format(n);
-    }
-
-    // 브라우저 기본(탭에서 파일 열림) 방지 — 페이지 전역 1회
     function preventNavDrop(e) {
       e.preventDefault();
     }
@@ -1016,24 +259,10 @@ html:not([data-viewer]) #screen-error { display: flex; }
       window.addEventListener(ev, preventNavDrop, true);
     });
 
-    // ── DOM 참조 ─────────────────────────────────────────────────
     const viewersRoot    = document.getElementById("viewers-root");
-    const mainAddDrop    = document.getElementById("main-add-drop");
-    const mainAddFiles   = document.getElementById("main-add-files");
-    const btnClearAll    = document.getElementById("btn-clear-all");
-    const btnExportAll   = document.getElementById("btn-export-all");
     const colorPickerEl  = document.getElementById("model-color-picker");
     const colorPresetsEl = document.getElementById("color-presets");
-    const quoteEmpty     = document.getElementById("quote-empty");
-    const quoteContent   = document.getElementById("quote-content");
-    const statsEl        = document.getElementById("stats");
-    const totalPriceEl   = document.getElementById("total-price");
-    const matPriceInput  = document.getElementById("mat-price");
-    const hourRateInput  = document.getElementById("hour-rate");
-    const densityInput   = document.getElementById("density");
-    const speedInput     = document.getElementById("speed");
 
-    /** STL 메쉬 색상 — 컬러 피커로 런타임에 변경 가능 */
     let MODEL_MESH_COLOR = 0xa3f958;
 
     const COLOR_PRESETS = [
@@ -1055,14 +284,12 @@ html:not([data-viewer]) #screen-error { display: flex; }
       return "#" + num.toString(16).padStart(6, "0");
     }
 
-    /** 현재 로드된 모든 슬롯의 메쉬 색상을 즉시 업데이트 */
     function applyColorToAllMeshes(colorNum) {
       viewerSlots.forEach(slot => {
         if (slot.mesh?.material) slot.mesh.material.color.setHex(colorNum);
       });
     }
 
-    /** 조명은 씬(월드)에 고정. 카메라도 고정. 모델만 드래그로 회전. */
     function applySlotLighting(slot) {
       if (!slot?.scene || !slot?.dirLight || !slot?.hemiLight) return;
       const hemi = slot.hemiLight;
@@ -1077,10 +304,6 @@ html:not([data-viewer]) #screen-error { display: flex; }
       dir.position.set(55, 95, 70);
     }
 
-    /**
-     * 마우스/터치 드래그로 mesh를 회전, 휠로 줌(카메라 전진/후진).
-     * 조명·카메라는 절대 움직이지 않음.
-     */
     function setupMeshDrag(slot) {
       const el = slot.renderer.domElement;
       let dragging = false;
@@ -1106,7 +329,6 @@ html:not([data-viewer]) #screen-error { display: flex; }
         if (newDist > maxDist) slot.camera.position.setLength(maxDist);
       }
 
-      // ── 마우스 ──
       el.addEventListener("mousedown", e => {
         if (e.button !== 0) return;
         dragging = true;
@@ -1126,7 +348,6 @@ html:not([data-viewer]) #screen-error { display: flex; }
         applyZoom(e.deltaY > 0 ? 1.12 : 1 / 1.12);
       }, { passive: false });
 
-      // ── 터치 ──
       let lastTouchX = 0, lastTouchY = 0, lastPinchDist = 0;
       el.addEventListener("touchstart", e => {
         e.preventDefault();
@@ -1159,17 +380,7 @@ html:not([data-viewer]) #screen-error { display: flex; }
     }
 
     let viewerSeq = 0;
-    /** @type {any[]} */
     let viewerSlots = [];
-
-    function collectModelsWithGeometry() {
-      return viewerSlots.filter(s => s.geometry && s.mesh && s.arrayBuffer).map(s => ({
-        name: s.fileName,
-        geometry: s.geometry,
-        mesh: s.mesh,
-        arrayBuffer: s.arrayBuffer,
-      }));
-    }
 
     function resizeSlotRenderer(slot) {
       if (!slot.renderer || !slot.canvasHost || !slot.camera) return;
@@ -1229,25 +440,6 @@ html:not([data-viewer]) #screen-error { display: flex; }
       slot.geometry = undefined;
       slot.arrayBuffer = undefined;
       slot.fileName = "";
-      slot.dropZone.classList.remove("has-model");
-      slot.fileLabel.textContent = "파일 없음";
-      slot.btnExport.hidden = true;
-      if (slot.sizeBar) slot.sizeBar.classList.remove("visible");
-    }
-
-    function disposeSlot(slot) {
-      if (slot._raf) cancelAnimationFrame(slot._raf);
-      slot._raf = null;
-      if (slot._onResize) window.removeEventListener("resize", slot._onResize);
-      clearSlotMesh(slot);
-      if (slot.renderer) {
-        slot.renderer.dispose();
-        const el = slot.renderer.domElement;
-        if (el?.parentNode) el.parentNode.removeChild(el);
-        slot.renderer = null;
-      }
-      slot.scene = null;
-      slot.camera = null;
     }
 
     function fitCameraToSlotMesh(slot) {
@@ -1281,81 +473,6 @@ html:not([data-viewer]) #screen-error { display: flex; }
       slot.mesh = mesh;
       slot.scene.add(mesh);
       fitCameraToSlotMesh(slot);
-      slot.dropZone.classList.add("has-model");
-      slot.fileLabel.textContent = fileName;
-      slot.btnExport.hidden = false;
-
-      const box = new THREE.Box3().setFromObject(mesh);
-      const sz = new THREE.Vector3();
-      box.getSize(sz);
-      slot.sizeX.textContent = formatMm(sz.x);
-      slot.sizeY.textContent = formatMm(sz.y);
-      slot.sizeZ.textContent = formatMm(sz.z);
-      slot.sizeBar.classList.add("visible");
-
-      updateQuoteAggregated();
-    }
-
-    async function loadSTLIntoSlot(slot, file) {
-      if (!file || !file.name.toLowerCase().endsWith(".stl")) {
-        alert("STL 파일(.stl)만 지원합니다.");
-        return;
-      }
-      const arrayBuffer = await file.arrayBuffer();
-      await loadSTLIntoSlotFromArrayBuffer(slot, arrayBuffer, file.name);
-    }
-
-    function setupSlotClickOpenFile(slot) {
-      const { dropZone, canvasHost, fileInput } = slot;
-      dropZone.addEventListener("click", ev => {
-        if (slot.geometry && ev.target.closest(".slot-canvas-host")) return;
-        fileInput.click();
-      });
-    }
-
-    function filterStlFiles(fileList) {
-      return Array.from(fileList || []).filter(f => f.name.toLowerCase().endsWith(".stl"));
-    }
-
-    async function addViewsFromStlFiles(files) {
-      const stl = filterStlFiles(files);
-      if (stl.length === 0) {
-        if (fileListLength(files) > 0) alert("STL 파일(.stl)만 지원합니다.");
-        return;
-      }
-      for (const f of stl) {
-        const slot = createViewerSlot();
-        await loadSTLIntoSlot(slot, f);
-      }
-    }
-
-    function fileListLength(fileList) {
-      return fileList ? fileList.length : 0;
-    }
-
-    function setupMainAddDrop() {
-      mainAddDrop.addEventListener("dragenter", e => { e.preventDefault(); mainAddDrop.classList.add("dragover"); });
-      mainAddDrop.addEventListener("dragover", e => { e.preventDefault(); mainAddDrop.classList.add("dragover"); });
-      mainAddDrop.addEventListener("dragleave", e => {
-        if (!e.relatedTarget || !mainAddDrop.contains(e.relatedTarget)) mainAddDrop.classList.remove("dragover");
-      });
-      mainAddDrop.addEventListener("drop", e => {
-        e.preventDefault();
-        e.stopPropagation();
-        mainAddDrop.classList.remove("dragover");
-        addViewsFromStlFiles(e.dataTransfer?.files);
-      });
-      mainAddDrop.addEventListener("click", () => mainAddFiles.click());
-      mainAddDrop.addEventListener("keydown", e => {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          mainAddFiles.click();
-        }
-      });
-      mainAddFiles.addEventListener("change", () => {
-        addViewsFromStlFiles(mainAddFiles.files);
-        mainAddFiles.value = "";
-      });
     }
 
     function createViewerSlot() {
@@ -1363,618 +480,22 @@ html:not([data-viewer]) #screen-error { display: flex; }
       const card = document.createElement("div");
       card.className = "viewer-card";
       card.innerHTML = `
-        <div class="slot-toolbar-top">
-          <span class="slot-title">뷰어 ${viewerSeq}</span>
-          <button type="button" class="btn-remove-slot" title="이 드롭 박스 제거">뷰 제거</button>
-        </div>
-        <div class="slot-drop-zone">
+        <div class="slot-viewport">
           <div class="slot-canvas-host"></div>
-          <div class="drop-hint">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" /></svg>
-            <span>이 박스를 클릭해 STL 선택</span>
-            <span class="drop-hint-sub">또는 아래 <strong>STL 선택</strong> (한 뷰당 1개)</span>
-          </div>
-        </div>
-        <div class="size-bar">
-          <span class="size-bar-label">크기</span>
-          <div class="size-dims">
-            <span class="size-dim"><span class="ax">W</span><span class="vl size-x">—</span><span class="un">mm</span></span>
-            <span class="size-dim"><span class="ax">D</span><span class="vl size-y">—</span><span class="un">mm</span></span>
-            <span class="size-dim"><span class="ax">H</span><span class="vl size-z">—</span><span class="un">mm</span></span>
-          </div>
-        </div>
-        <div class="toolbar">
-          <label class="file-btn">STL 선택<input type="file" class="slot-file-input" accept=".stl,.STL" /></label>
-          <button type="button" class="btn-slot-reset">뷰 리셋</button>
-          <button type="button" class="export-btn btn-slot-export" hidden>⬇ HTML</button>
-          <span class="filename slot-file-label">파일 없음</span>
         </div>`;
       viewersRoot.appendChild(card);
 
       const slot = {
         id: `slot-${viewerSeq}`,
         card,
-        dropZone: card.querySelector(".slot-drop-zone"),
         canvasHost: card.querySelector(".slot-canvas-host"),
-        fileInput: card.querySelector(".slot-file-input"),
-        fileLabel: card.querySelector(".slot-file-label"),
-        sizeBar: card.querySelector(".size-bar"),
-        sizeX: card.querySelector(".size-x"),
-        sizeY: card.querySelector(".size-y"),
-        sizeZ: card.querySelector(".size-z"),
-        btnReset: card.querySelector(".btn-slot-reset"),
-        btnRemove: card.querySelector(".btn-remove-slot"),
-        btnExport: card.querySelector(".btn-slot-export"),
       };
 
       initThreeForSlot(slot);
-      setupSlotClickOpenFile(slot);
-
-      slot.fileInput.addEventListener("change", () => {
-        const f = slot.fileInput.files?.[0];
-        if (f) loadSTLIntoSlot(slot, f);
-        slot.fileInput.value = "";
-      });
-      slot.btnReset.addEventListener("click", () => {
-        if (slot.mesh) slot.mesh.quaternion.identity();
-        slot.camera.position.copy(slot.initialCameraPos);
-        slot.camera.lookAt(0, 0, 0);
-      });
-      slot.btnExport.addEventListener("click", () => exportSlotHTML(slot));
-      slot.btnRemove.addEventListener("click", () => removeViewerSlot(slot));
-
       viewerSlots.push(slot);
       return slot;
     }
 
-    function removeViewerSlot(slot) {
-      const i = viewerSlots.indexOf(slot);
-      if (i < 0) return;
-      viewerSlots.splice(i, 1);
-      disposeSlot(slot);
-      slot.card.remove();
-      updateQuoteAggregated();
-    }
-
-    function clearAllSlotsMeshes() {
-      viewerSlots.forEach(s => clearSlotMesh(s));
-      updateQuoteAggregated();
-    }
-
-    // ── 석고 반죽량 계산기 ─────────────────────────────────────────
-    // 실측 2회 평균 계수
-    // 1차: 478747.141 mm³ → 530g  → 1.1071
-    // 2차: 355382.28  mm³ → 400g  → 1.1255
-    // 평균 석고 계수: 1.1163 / 물 계수: 0.78141 (물:석고 = 70:100)
-    const PLASTER_K = 1.1163;
-    const WATER_K   = 0.78141; // 1.1163 × 0.70
-
-    const plasterContent = document.getElementById("plaster-content");
-    const plasterMargin  = document.getElementById("plaster-margin");
-    const plasterMarginOut = document.getElementById("plaster-margin-out");
-    const plasterVolManual = document.getElementById("plaster-vol-manual");
-
-    // 10 단위 올림
-    function roundUp10(n) { return Math.ceil(n / 10) * 10; }
-
-    function updatePlasterCalc() {
-      const loadedModels = collectModelsWithGeometry();
-      let totalVolMm3 = 0;
-
-      if (loadedModels.length > 0) {
-        // STL 로드된 경우: mm³ 값으로 직접 입력 필드에 자동 반영
-        for (const m of loadedModels) totalVolMm3 += computeVolumeMm3(m.geometry);
-        plasterVolManual.value = Math.round(totalVolMm3);
-      } else {
-        // STL 없는 경우: 직접 입력값 사용 (mm³)
-        const manualMm3 = parseFloat(plasterVolManual.value);
-        if (!manualMm3 || manualMm3 <= 0) {
-          // 값 없으면 — 표시만 하고 종료
-          document.getElementById("plaster-vol-display").textContent = "—";
-          document.getElementById("plaster-vol-cc").textContent = "— cc";
-          document.getElementById("p-plaster-actual").innerHTML = `—<small class="p-unit"> g</small>`;
-          document.getElementById("p-water-actual").innerHTML   = `—<small class="p-unit"> mL</small>`;
-          document.getElementById("p-plaster-rec").textContent  = "—";
-          document.getElementById("p-water-rec").textContent    = "—";
-          document.getElementById("plaster-breakdown").hidden = true;
-          plasterMarginOut.textContent = "+" + plasterMargin.value + "%";
-          return;
-        }
-        totalVolMm3 = manualMm3;
-      }
-
-      const margin  = parseInt(plasterMargin.value);
-      const f       = 1 + margin / 100;
-      const cc      = totalVolMm3 / 1000;
-      const plaster = cc * PLASTER_K * f;
-      const water   = cc * WATER_K   * f;
-      const total   = plaster + water;
-
-      const pRound = Math.round(plaster);
-      const wRound = Math.round(water);
-      const tRound = pRound + wRound;
-      // 추천값: 석고는 10g 올림, 물은 석고 추천값 × 0.75 (비율 보장)
-      const pRec   = roundUp10(plaster);
-      const wRec   = pRec * 0.70;
-      const tRec   = pRec + wRec;
-
-      document.getElementById("plaster-vol-display").textContent = formatNum(totalVolMm3, 1);
-      document.getElementById("plaster-vol-cc").textContent      = formatNum(cc, 2) + " cc";
-
-      document.getElementById("p-plaster-actual").innerHTML = `${pRound.toLocaleString()}<small class="p-unit"> g</small>`;
-      document.getElementById("p-water-actual").innerHTML   = `${wRound.toLocaleString()}<small class="p-unit"> mL</small>`;
-      document.getElementById("p-plaster-rec").textContent  = pRec.toLocaleString();
-      // 물 추천값: 소수가 있으면 소수 1자리, 없으면 정수
-      document.getElementById("p-water-rec").textContent    = wRec % 1 === 0 ? wRec.toLocaleString() : wRec.toFixed(1);
-
-      // 개별 뷰어 breakdown (2개 이상일 때만 표시)
-      const breakdownEl = document.getElementById("plaster-breakdown");
-      if (loadedModels.length > 1) {
-        const rows = loadedModels.map((m, i) => {
-          const vMm3 = computeVolumeMm3(m.geometry);
-          const vCc  = vMm3 / 1000;
-          const mp   = Math.round(vCc * PLASTER_K * f);
-          const mw   = Math.round(vCc * WATER_K   * f);
-          const mpR  = roundUp10(vCc * PLASTER_K * f);
-          const mwR  = roundUp10(vCc * WATER_K   * f);
-          const name = m.name.replace(/\.stl$/i, "");
-          return `<div class="p-breakdown-row">
-            <div class="p-breakdown-name" title="${name}">뷰어 ${i+1} · ${name}</div>
-            <div class="p-breakdown-vals">
-              <span class="p-bv-item">석고 <strong>${mp.toLocaleString()}</strong><em>g</em> <span class="p-bv-rec">(→${mpR.toLocaleString()})</span></span>
-              <span class="p-bv-sep">·</span>
-              <span class="p-bv-item">물 <strong>${mw.toLocaleString()}</strong><em>mL</em> <span class="p-bv-rec">(→${mwR.toLocaleString()})</span></span>
-            </div>
-          </div>`;
-        }).join("");
-        breakdownEl.innerHTML = `<div class="p-breakdown-wrap"><div class="p-breakdown-title">뷰어별 개별값</div>${rows}</div>`;
-        breakdownEl.hidden = false;
-      } else {
-        breakdownEl.hidden = true;
-      }
-
-      plasterMarginOut.textContent = "+" + margin + "%";
-    }
-
-    plasterMargin.addEventListener("input", () => {
-      plasterMarginOut.textContent = "+" + plasterMargin.value + "%";
-      updatePlasterCalc();
-    });
-
-    plasterVolManual.addEventListener("input", updatePlasterCalc);
-
-    // 석고량 직접 입력 → 물량 역산 (× 0.75)
-    document.getElementById("plaster-g-input").addEventListener("input", function () {
-      const g = parseFloat(this.value);
-      const out = document.getElementById("plaster-g-water");
-      if (!g || g <= 0) { out.textContent = "—"; return; }
-      const water = g * 0.70;
-      out.textContent = water % 1 === 0 ? water.toLocaleString() : water.toFixed(1);
-    });
-
-    // ── 견적 (모든 뷰에 올린 STL 합산) ───────────────────────────
-    function updateQuoteAggregated() {
-      const loadedModels = collectModelsWithGeometry();
-      if (loadedModels.length === 0) {
-        quoteEmpty.hidden = false;
-        quoteContent.hidden = true;
-        btnExportAll.disabled = true;
-        updatePlasterCalc();
-        return;
-      }
-
-      let totalVolMm3 = 0;
-      let totalAreaMm2 = 0;
-      let totalTris = 0;
-      let maxSingleAxisMm = 0;
-      for (const m of loadedModels) {
-        m.mesh.updateMatrixWorld(true);
-        totalVolMm3 += computeVolumeMm3(m.geometry);
-        totalAreaMm2 += computeSurfaceAreaMm2(m.geometry);
-        totalTris += m.geometry.attributes.position.count / 3;
-        const oneBox = new THREE.Box3().setFromObject(m.mesh);
-        const sz = new THREE.Vector3();
-        oneBox.getSize(sz);
-        maxSingleAxisMm = Math.max(maxSingleAxisMm, sz.x, sz.y, sz.z);
-      }
-      const totalVolCm3 = totalVolMm3 / 1000;
-      const density = Math.max(0, parseFloat(densityInput.value) || 0);
-      const massG = totalVolCm3 * density;
-
-      statsEl.innerHTML = [
-        { label: "불러온 파일 (뷰 합계)", value: `${loadedModels.length}개` },
-        { label: "파트 최장변 (mm, 뷰별)", value: `≤ ${formatMm(maxSingleAxisMm)}` },
-        { label: "합산 추정 볼륨", value: `${formatNum(totalVolCm3, 3)} cm³` },
-        { label: "합산 표면적 (참고)", value: `${formatNum(totalAreaMm2, 1)} mm²` },
-        { label: "합산 삼각형 수", value: formatNum(totalTris, 0) },
-        { id: "stat-mass", label: "합산 추정 무게 (참고)", value: `${formatNum(massG, 2)} g (밀도×부피)` },
-      ].map(s => `<div class="stat"${s.id ? ` id="${s.id}"` : ""}><div class="label">${s.label}</div><div class="value">${s.value}</div></div>`).join("");
-
-      quoteEmpty.hidden = true;
-      quoteContent.hidden = false;
-      btnExportAll.disabled = false;
-      recalcPrice();
-      updatePlasterCalc();
-    }
-
-    function recalcPrice() {
-      const loadedModels = collectModelsWithGeometry();
-      if (loadedModels.length === 0) return;
-      let totalVolMm3 = 0;
-      for (const m of loadedModels) totalVolMm3 += computeVolumeMm3(m.geometry);
-      const volCm3 = totalVolMm3 / 1000;
-      const matPrice = Math.max(0, parseFloat(matPriceInput.value) || 0);
-      const hourRate = Math.max(0, parseFloat(hourRateInput.value) || 0);
-      const density  = Math.max(0, parseFloat(densityInput.value) || 0);
-      const speed    = Math.max(1, parseFloat(speedInput.value) || 12000);
-      const total = (volCm3 * matPrice) + (totalVolMm3 / speed * hourRate);
-      totalPriceEl.textContent = `${formatNum(Math.round(total), 0)}원`;
-      const massG = volCm3 * density;
-      const el = document.getElementById("stat-mass")?.querySelector(".value");
-      if (el) el.textContent = `${formatNum(massG, 2)} g (밀도×부피)`;
-    }
-
-    async function exportSlotHTML(slot) {
-      if (!slot.arrayBuffer) return;
-      const models = [{ name: slot.fileName, arrayBuffer: slot.arrayBuffer }];
-      const html = await generateEmbeddedHTMLMulti(models);
-      const blob = new Blob([html], { type: "text/html;charset=utf-8" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = slot.fileName.replace(/\.stl$/i, "") + "_뷰어.html";
-      a.click();
-      URL.revokeObjectURL(url);
-    }
-
-    // ── HTML 내보내기 ─────────────────────────────────────────────
-    function arrayBufferToBase64Sync(buffer) {
-      const bytes = new Uint8Array(buffer);
-      let bin = "";
-      for (let i = 0; i < bytes.byteLength; i++) bin += String.fromCharCode(bytes[i]);
-      return btoa(bin);
-    }
-
-    /** STL ArrayBuffer를 gzip 압축 후 base64로 변환. 압축 실패 시 무압축으로 fallback. */
-    async function compressToBase64(buffer) {
-      try {
-        const cs = new CompressionStream("gzip");
-        const writer = cs.writable.getWriter();
-        writer.write(new Uint8Array(buffer));
-        writer.close();
-        const chunks = [];
-        const reader = cs.readable.getReader();
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          chunks.push(value);
-        }
-        const total = chunks.reduce((s, c) => s + c.length, 0);
-        const out = new Uint8Array(total);
-        let offset = 0;
-        for (const chunk of chunks) { out.set(chunk, offset); offset += chunk.length; }
-        return { b: arrayBufferToBase64Sync(out.buffer), c: 1 };
-      } catch (_) {
-        return { b: arrayBufferToBase64Sync(buffer), c: 0 };
-      }
-    }
-
-    function escapeHtmlAttr(s) {
-      return String(s).replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-    }
-
-    async function generateEmbeddedHTMLMulti(models) {
-      const payloadItems = await Promise.all(models.map(async m => {
-        const { b, c } = await compressToBase64(m.arrayBuffer);
-        return { n: m.name, b, c };
-      }));
-      const dataJson = JSON.stringify(payloadItems);
-      const titleText = models.length === 1
-        ? models[0].name.replace(/\.stl$/i, "")
-        : `${models.length}개 STL`;
-      const meshColorNum = MODEL_MESH_COLOR;
-      const meshColorHex = threeNumToHex(meshColorNum);
-      const cardsHtml = models.map((m, i) => `
-    <div class="viewer-card">
-      <div class="emb-card-head"><span class="emb-title">${escapeHtmlAttr(m.name)}</span></div>
-      <div class="emb-canvas-wrap">
-        <div class="emb-canvas-host" id="emb-host-${i}"></div>
-        <div class="emb-loading" id="emb-load-${i}"><div class="spinner"></div><span>불러오는 중…</span></div>
-      </div>
-      <div class="size-bar" id="emb-size-${i}">
-        <span class="size-bar-label">크기</span>
-        <div class="size-dims">
-          <span class="size-dim"><span class="ax">W</span><span class="vl" id="emb-sx-${i}">—</span><span class="un">mm</span></span>
-          <span class="size-dim"><span class="ax">D</span><span class="vl" id="emb-sy-${i}">—</span><span class="un">mm</span></span>
-          <span class="size-dim"><span class="ax">H</span><span class="vl" id="emb-sz-${i}">—</span><span class="un">mm</span></span>
-        </div>
-      </div>
-      <div class="toolbar">
-        <button type="button" class="emb-reset-btn" data-emb-i="${i}">뷰 리셋</button>
-      </div>
-    </div>`).join("");
-      return `<!DOCTYPE html>
-<html lang="ko">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>${escapeHtmlAttr(titleText)} · 3D 뷰어</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600&display=swap" rel="stylesheet" />
-  <style>
-:root{--bg:#f8f9fb;--surface:#ffffff;--border:#e2e5ed;--text:#111827;--muted:#6b7280;--accent:#2f6bff;--radius:12px;}
-*{box-sizing:border-box;}
-body{margin:0;min-height:100vh;font-family:"IBM Plex Sans KR",system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.5;}
-.wrap{max-width:960px;margin:0 auto;padding:24px 20px 48px;}
-header{margin-bottom:16px;}
-header h1{font-size:1.35rem;font-weight:600;margin:0 0 6px;letter-spacing:-0.02em;}
-header p{margin:0;font-size:0.9rem;color:var(--muted);}
-.viewer-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:20px;box-shadow:0 1px 4px rgba(0,0,0,.06);}
-.emb-card-head{padding:10px 14px;border-bottom:1px solid var(--border);background:rgba(248,249,251,.95);}
-.emb-title{font-size:.88rem;font-weight:600;color:var(--text);word-break:break-all;}
-.emb-canvas-wrap{position:relative;height:min(38vh,360px);background:linear-gradient(160deg,#f0f4ff 0%,#e8edf8 100%);}
-.emb-canvas-host{width:100%;height:100%;}
-.emb-loading{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--muted);font-size:.88rem;gap:10px;pointer-events:none;}
-.spinner{width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;}
-@keyframes spin{to{transform:rotate(360deg);}}
-.toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding:12px 14px;border-top:1px solid var(--border);background:rgba(255,255,255,.95);}
-.toolbar button{font:inherit;font-size:.85rem;padding:8px 14px;border-radius:8px;border:1px solid var(--border);background:#fff;color:var(--text);cursor:pointer;}
-.toolbar button:hover{border-color:var(--accent);color:var(--accent);}
-.size-bar{display:none;align-items:center;gap:16px;padding:8px 14px;border-top:1px solid var(--border);background:rgba(248,249,251,.95);flex-wrap:wrap;}
-.size-bar.visible{display:flex;}
-.size-bar-label{font-size:.75rem;color:var(--muted);white-space:nowrap;}
-.size-dims{display:flex;gap:12px;flex-wrap:wrap;}
-.size-dim{display:flex;align-items:baseline;gap:3px;font-size:.85rem;}
-.size-dim .ax{font-size:.72rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;min-width:12px;}
-.size-dim .vl{font-variant-numeric:tabular-nums;font-weight:500;color:var(--text);}
-.size-dim .un{font-size:.72rem;color:var(--muted);}
-.color-bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 14px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:20px;box-shadow:0 1px 4px rgba(0,0,0,.06);}
-.color-bar-label{font-size:.82rem;color:var(--muted);white-space:nowrap;}
-#emb-color-picker{width:36px;height:32px;padding:2px;border-radius:8px;border:1px solid var(--border);background:#fff;cursor:pointer;appearance:none;-webkit-appearance:none;}
-#emb-color-picker::-webkit-color-swatch-wrapper{padding:0;border-radius:6px;}
-#emb-color-picker::-webkit-color-swatch{border:none;border-radius:6px;}
-.color-presets{display:flex;gap:5px;flex-wrap:wrap;}
-.color-preset{width:22px;height:22px;border-radius:50%;border:2px solid transparent;cursor:pointer;transition:border-color .15s,transform .1s;flex-shrink:0;}
-.color-preset:hover{transform:scale(1.15);}
-.color-preset.active{border-color:var(--text);}
-  </style>
-</head>
-<body>
-  <div class="wrap">
-    <header>
-      <h1>${escapeHtmlAttr(titleText)}</h1>
-      <p>드래그로 모델 회전 · 휠로 줌 · 조명·카메라 고정</p>
-    </header>
-    <div class="color-bar">
-      <span class="color-bar-label">모델 색상</span>
-      <input type="color" id="emb-color-picker" value="${meshColorHex}" title="모델 색상 선택" />
-      <div class="color-presets" id="emb-color-presets"></div>
-    </div>
-    <div id="emb-root">${cardsHtml}
-    </div>
-  </div>
-
-  <script async src="https://ga.jspm.io/npm:es-module-shims@1.8.2/dist/es-module-shims.js"><\/script>
-  <script type="importmap">
-  {"imports":{"three":"https://unpkg.com/three@0.160.0/build/three.module.js","three/addons/":"https://unpkg.com/three@0.160.0/examples/jsm/"}}
-  <\/script>
-  <script type="module">
-    import * as THREE from "three";
-    import { STLLoader } from "three/addons/loaders/STLLoader.js";
-
-    const MODEL_DATA = ${dataJson};
-    let MESH_COLOR = ${meshColorNum};
-
-    /** base64 디코딩 후 gzip 압축이면 해제, 아니면 그대로 반환 */
-    function b64ToDecompressedBuffer(b64, compressed) {
-      return new Promise(resolve => {
-        const bin = atob(b64), len = bin.length;
-        const bytes = new Uint8Array(len);
-        const CHUNK = 65536;
-        let i = 0;
-        function decode() {
-          const end = Math.min(i + CHUNK, len);
-          for (; i < end; i++) bytes[i] = bin.charCodeAt(i);
-          if (i < len) { setTimeout(decode, 0); return; }
-          if (!compressed) { resolve(bytes.buffer); return; }
-          const ds = new DecompressionStream("gzip");
-          const writer = ds.writable.getWriter();
-          writer.write(bytes); writer.close();
-          const chunks = [];
-          const reader = ds.readable.getReader();
-          (function read() {
-            reader.read().then(({ done, value }) => {
-              if (done) {
-                const total = chunks.reduce((s, c) => s + c.length, 0);
-                const out = new Uint8Array(total);
-                let off = 0;
-                for (const c of chunks) { out.set(c, off); off += c.length; }
-                resolve(out.buffer);
-              } else { chunks.push(value); read(); }
-            });
-          })();
-        }
-        decode();
-      });
-    }
-
-    const COLOR_PRESETS = [
-      { hex: "#a3f958", label: "라임" },
-      { hex: "#ffffff", label: "화이트" },
-      { hex: "#d4d4d4", label: "실버" },
-      { hex: "#f5c842", label: "골드" },
-      { hex: "#f97316", label: "오렌지" },
-      { hex: "#ef4444", label: "레드" },
-      { hex: "#3b82f6", label: "블루" },
-      { hex: "#8b5cf6", label: "퍼플" },
-      { hex: "#1a1a1a", label: "블랙" },
-    ];
-
-    function hexToNum(hex) { return parseInt(hex.replace("#",""),16); }
-    function numToHex(num) { return "#"+num.toString(16).padStart(6,"0"); }
-
-    const viewers = [];
-
-    function applyColorToAll(colorNum) {
-      viewers.forEach(v => { if (v.mesh?.material) v.mesh.material.color.setHex(colorNum); });
-    }
-
-    function setupMeshDrag(el, getMesh, camera) {
-      let dragging = false, lastX = 0, lastY = 0;
-      const SPEED = 0.008;
-      function applyDelta(dx, dy) {
-        const mesh = getMesh();
-        if (!mesh) return;
-        const qY = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,1,0), dx*SPEED);
-        const qX = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1,0,0), dy*SPEED);
-        mesh.quaternion.premultiply(qY).premultiply(qX);
-      }
-      function applyZoom(factor) {
-        const dir = new THREE.Vector3(0,0,-1).applyQuaternion(camera.quaternion);
-        const dist = camera.position.length();
-        camera.position.addScaledVector(dir, dist*(1-factor));
-        const nd = camera.position.length();
-        if (nd < 0.5) camera.position.setLength(0.5);
-        if (nd > 1e5) camera.position.setLength(1e5);
-      }
-      el.addEventListener("mousedown", e => { if(e.button!==0)return; dragging=true; lastX=e.clientX; lastY=e.clientY; el.style.cursor="grabbing"; });
-      window.addEventListener("mousemove", e => { if(!dragging)return; applyDelta(e.clientX-lastX,e.clientY-lastY); lastX=e.clientX; lastY=e.clientY; });
-      window.addEventListener("mouseup", () => { dragging=false; el.style.cursor="grab"; });
-      el.style.cursor = "grab";
-      el.addEventListener("wheel", e => { e.preventDefault(); applyZoom(e.deltaY>0?1.12:1/1.12); }, {passive:false});
-      let ltx=0,lty=0,lpd=0;
-      el.addEventListener("touchstart", e => { e.preventDefault(); if(e.touches.length===1){ltx=e.touches[0].clientX;lty=e.touches[0].clientY;}else if(e.touches.length===2)lpd=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY); },{passive:false});
-      el.addEventListener("touchmove", e => { e.preventDefault(); if(e.touches.length===1){applyDelta(e.touches[0].clientX-ltx,e.touches[0].clientY-lty);ltx=e.touches[0].clientX;lty=e.touches[0].clientY;}else if(e.touches.length===2){const d=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);if(lpd>0)applyZoom(lpd/d);lpd=d;} },{passive:false});
-      el.addEventListener("touchend",()=>{lpd=0;},{passive:true});
-    }
-
-    async function main() {
-      for (let i = 0; i < MODEL_DATA.length; i++) {
-        const host = document.getElementById("emb-host-"+i);
-        const loadEl = document.getElementById("emb-load-"+i);
-        try {
-          const w=Math.max(host.clientWidth,2), h=Math.max(host.clientHeight,2);
-          const scene=new THREE.Scene(); scene.background=new THREE.Color(0xf0f4ff);
-          const camera=new THREE.PerspectiveCamera(45,w/h,0.1,2000);
-          const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});
-          renderer.setSize(w,h); renderer.setPixelRatio(Math.min(devicePixelRatio,2));
-          host.appendChild(renderer.domElement);
-          scene.add(new THREE.HemisphereLight(0xffffff,0xdde4f0,0.25));
-          const dir=new THREE.DirectionalLight(0xffffff,1.15);
-          scene.add(dir.target); dir.target.position.set(0,0,0);
-          scene.add(dir); dir.position.set(55,95,70);
-          const buf=await b64ToDecompressedBuffer(MODEL_DATA[i].b, MODEL_DATA[i].c);
-          const geometry=new STLLoader().parse(buf);
-          geometry.computeVertexNormals(); geometry.center();
-          const mesh=new THREE.Mesh(geometry,new THREE.MeshStandardMaterial({color:MESH_COLOR,metalness:0.05,roughness:0.55}));
-          scene.add(mesh);
-          const box=new THREE.Box3().setFromObject(mesh);
-          const sz=new THREE.Vector3(); box.getSize(sz);
-          const maxDim=Math.max(sz.x,sz.y,sz.z,1), dist=maxDim*2.0;
-          camera.near=Math.max(0.01,dist/200); camera.far=dist*50; camera.updateProjectionMatrix();
-          const initialCameraPos=new THREE.Vector3(0,0,dist);
-          camera.position.copy(initialCameraPos); camera.lookAt(0,0,0);
-
-          // 치수 표시
-          function fmm(n){return n>=100?n.toFixed(1):n>=10?n.toFixed(2):n.toFixed(3);}
-          const sizeEl=document.getElementById("emb-size-"+i);
-          if(sizeEl){
-            document.getElementById("emb-sx-"+i).textContent=fmm(sz.x);
-            document.getElementById("emb-sy-"+i).textContent=fmm(sz.y);
-            document.getElementById("emb-sz-"+i).textContent=fmm(sz.z);
-            sizeEl.classList.add("visible");
-          }
-          const v={scene,camera,renderer,host,mesh,initialCameraPos};
-          viewers.push(v);
-          setupMeshDrag(renderer.domElement,()=>v.mesh,camera);
-          loadEl.style.display="none";
-        } catch(err) {
-          loadEl.innerHTML="<span style='color:#e53e3e'>로드 실패: "+err.message+"<\\/span>";
-        }
-      }
-
-      function resizeAll() {
-        viewers.forEach(v=>{const w=Math.max(v.host.clientWidth,2),h=Math.max(v.host.clientHeight,2);v.camera.aspect=w/h;v.camera.updateProjectionMatrix();v.renderer.setSize(w,h);});
-      }
-      window.addEventListener("resize",resizeAll);
-      requestAnimationFrame(resizeAll);
-      function animate(){requestAnimationFrame(animate);viewers.forEach(v=>v.renderer.render(v.scene,v.camera));}
-      animate();
-
-      document.querySelectorAll(".emb-reset-btn").forEach(btn=>{
-        btn.addEventListener("click",()=>{
-          const idx=parseInt(btn.getAttribute("data-emb-i"),10);
-          const v=viewers[idx]; if(!v)return;
-          if(v.mesh)v.mesh.quaternion.identity();
-          v.camera.position.copy(v.initialCameraPos); v.camera.lookAt(0,0,0);
-        });
-      });
-
-      // 컬러 피커 초기화
-      const picker=document.getElementById("emb-color-picker");
-      const presetsEl=document.getElementById("emb-color-presets");
-      function updateActive(hex){
-        presetsEl.querySelectorAll(".color-preset").forEach(el=>el.classList.toggle("active",el.dataset.hex===hex.toLowerCase()));
-      }
-      COLOR_PRESETS.forEach(({hex,label})=>{
-        const btn=document.createElement("button");
-        btn.type="button"; btn.className="color-preset"; btn.style.background=hex;
-        btn.dataset.hex=hex; btn.title=label;
-        if(hex===numToHex(MESH_COLOR))btn.classList.add("active");
-        btn.addEventListener("click",()=>{
-          MESH_COLOR=hexToNum(hex); picker.value=hex;
-          applyColorToAll(MESH_COLOR); updateActive(hex);
-        });
-        presetsEl.appendChild(btn);
-      });
-      picker.addEventListener("input",()=>{
-        MESH_COLOR=hexToNum(picker.value);
-        applyColorToAll(MESH_COLOR); updateActive(picker.value);
-      });
-      updateActive(numToHex(MESH_COLOR));
-    }
-
-    main().catch(err=>{
-      const root=document.getElementById("emb-root");
-      if(root)root.innerHTML="<p style='color:#e53e3e;padding:16px'>초기화 실패: "+err.message+"<\\/p>";
-    });
-  <\/script>
-</body>
-</html>`;
-    }
-
-    btnExportAll.addEventListener("click", async () => {
-      const loadedModels = collectModelsWithGeometry();
-      if (loadedModels.length === 0) return;
-
-      const prev = btnExportAll.textContent;
-      btnExportAll.textContent = "압축 중…";
-      btnExportAll.disabled = true;
-
-      try {
-        const html = await generateEmbeddedHTMLMulti(loadedModels);
-        const blob = new Blob([html], { type: "text/html;charset=utf-8" });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        const base = loadedModels.length === 1
-          ? loadedModels[0].name.replace(/\.stl$/i, "")
-          : `STL뷰어_${loadedModels.length}개`;
-        a.download = base + "_뷰어.html";
-        a.click();
-        URL.revokeObjectURL(url);
-      } catch (e) {
-        alert("HTML 생성 실패: " + e.message);
-      } finally {
-        btnExportAll.textContent = prev;
-        btnExportAll.disabled = collectModelsWithGeometry().length === 0;
-      }
-    });
-
-    btnClearAll.addEventListener("click", () => clearAllSlotsMeshes());
-
-    // ── 컬러 피커 초기화 ────────────────────────────────────────
     function updateActivePreset(hex) {
       colorPresetsEl.querySelectorAll(".color-preset").forEach(el => {
         el.classList.toggle("active", el.dataset.hex === hex.toLowerCase());
@@ -2002,9 +523,6 @@ header p{margin:0;font-size:0.9rem;color:var(--muted);}
       applyColorToAllMeshes(MODEL_MESH_COLOR);
       updateActivePreset(colorPickerEl.value);
     });
-
-    setupMainAddDrop();
-    [matPriceInput, hourRateInput, densityInput, speedInput].forEach(el => el.addEventListener("input", recalcPrice));
 
     async function initViewerFromQuery() {
       const params = new URLSearchParams(window.location.search);
