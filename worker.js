@@ -2,6 +2,7 @@
  * Cloudflare Worker — 대시보드에 코드 붙여넣기 배포용 (import 없음)
  *
  * 역할: STL 업로드·목록·삭제 API, records/tools API. (인증 없음 — Worker URL 비공개 권장)
+ * STL 업로드 시각은 models/meta.json 에 파일명 키로 함께 저장합니다.
  * 관리 UI는 GitHub Pages의 admin/index.html 에서 이 Worker를 호출합니다.
  * 공개 뷰어는 Pages(index.html). Worker 루트(/)는 Pages로 리다이렉트.
  *
@@ -14,6 +15,8 @@
 const GITHUB_API = "https://api.github.com";
 const DEFAULT_BRANCH = "main";
 const MODELS_PATH = "models";
+/** STL 업로드 시각(ISO 8601) 기록 — GitHub models/meta.json */
+const MODELS_META_REL = MODELS_PATH + "/meta.json";
 const VIEWER_BASE = "https://shinhp3.github.io/eoulrimstudio-models";
 
 function corsHeaders() {
@@ -102,6 +105,71 @@ function requireEnv(env) {
   return { token, username, repo };
 }
 
+function recordsUtf8ToBase64(str) {
+  const bytes = new TextEncoder().encode(str);
+  let bin = "";
+  for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+  return btoa(bin);
+}
+
+/** @returns {{ map: Record<string, string>, sha?: string }} */
+async function fetchModelsMeta(token, username, repo) {
+  const apiPath =
+    GITHUB_API +
+    "/repos/" +
+    username +
+    "/" +
+    repo +
+    "/contents/" +
+    gitContentsPath(MODELS_META_REL) +
+    "?ref=" +
+    encodeURIComponent(DEFAULT_BRANCH);
+  try {
+    const data = await githubJson("GET", apiPath, token);
+    if (!data.content || data.encoding !== "base64") {
+      return { map: {}, sha: undefined };
+    }
+    const bin = atob(String(data.content).replace(/\s/g, ""));
+    const bytes = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    const text = new TextDecoder("utf-8").decode(bytes);
+    let parsed;
+    try {
+      parsed = JSON.parse(text);
+    } catch {
+      return { map: {}, sha: typeof data.sha === "string" ? data.sha : undefined };
+    }
+    const raw =
+      parsed && typeof parsed.uploadedAt === "object" && parsed.uploadedAt !== null
+        ? parsed.uploadedAt
+        : {};
+    const map = {};
+    for (const [k, v] of Object.entries(raw)) {
+      if (typeof k === "string" && k.toLowerCase().endsWith(".stl") && typeof v === "string") {
+        map[k] = v;
+      }
+    }
+    return { map, sha: typeof data.sha === "string" ? data.sha : undefined };
+  } catch (e) {
+    if (e.status === 404) return { map: {}, sha: undefined };
+    throw e;
+  }
+}
+
+async function saveModelsMeta(token, username, repo, map, sha) {
+  const apiPath =
+    GITHUB_API + "/repos/" + username + "/" + repo + "/contents/" + gitContentsPath(MODELS_META_REL);
+  const payload = JSON.stringify({ version: 1, uploadedAt: map }, null, 2);
+  const content = recordsUtf8ToBase64(payload);
+  const putBody = {
+    message: "Update models upload dates (meta.json)",
+    content,
+    branch: DEFAULT_BRANCH,
+  };
+  if (sha) putBody.sha = sha;
+  await githubJson("PUT", apiPath, token, putBody);
+}
+
 async function handleUpload(request, env) {
   try {
     const { token, username, repo } = requireEnv(env);
@@ -153,8 +221,9 @@ async function handleUpload(request, env) {
       if (e.status !== 404) throw e;
     }
 
+    const uploadedAt = new Date().toISOString();
     const putBody = {
-      message: "Upload STL: " + safeName,
+      message: "Upload STL: " + safeName + " @ " + uploadedAt,
       content: trimmed,
       branch: DEFAULT_BRANCH,
     };
@@ -162,8 +231,19 @@ async function handleUpload(request, env) {
 
     await githubJson("PUT", apiPath, token, putBody);
 
+    let metaWarning = null;
+    try {
+      const meta = await fetchModelsMeta(token, username, repo);
+      meta.map[safeName] = uploadedAt;
+      await saveModelsMeta(token, username, repo, meta.map, meta.sha);
+    } catch (me) {
+      metaWarning = me.message || String(me);
+    }
+
     const url = viewerUrlForFilename(safeName);
-    return jsonResponse({ success: true, url, filename: safeName });
+    const out = { success: true, url, filename: safeName, uploadedAt };
+    if (metaWarning) out.metaWarning = metaWarning;
+    return jsonResponse(out);
   } catch (e) {
     const msg = e.message || String(e);
     const status = e.status >= 400 && e.status < 600 ? e.status : 500;
@@ -199,15 +279,28 @@ async function handleList(env, request) {
       return jsonResponse({ success: false, error: "목록 응답 형식이 올바르지 않습니다." }, 502);
     }
 
+    let metaMap = {};
+    try {
+      const meta = await fetchModelsMeta(token, username, repo);
+      metaMap = meta.map;
+    } catch {
+      metaMap = {};
+    }
+
     const files = data
       .filter(
         (item) =>
           item.type === "file" && item.name && item.name.toLowerCase().endsWith(".stl")
       )
-      .map((item) => ({
-        filename: item.name,
-        url: viewerUrlForFilename(item.name),
-      }))
+      .map((item) => {
+        const filename = item.name;
+        const uploadedAt = metaMap[filename] || null;
+        return {
+          filename,
+          url: viewerUrlForFilename(filename),
+          ...(uploadedAt ? { uploadedAt } : {}),
+        };
+      })
       .sort((a, b) => a.filename.localeCompare(b.filename));
 
     return jsonResponse({ files });
@@ -258,19 +351,23 @@ async function handleDelete(request, env) {
       sha: existing.sha,
       branch: DEFAULT_BRANCH,
     });
+
+    try {
+      const meta = await fetchModelsMeta(token, username, repo);
+      if (meta.map[safeName]) {
+        delete meta.map[safeName];
+        await saveModelsMeta(token, username, repo, meta.map, meta.sha);
+      }
+    } catch {
+      /* STL 삭제는 완료됨 — 메타만 불일치할 수 있음 */
+    }
+
     return jsonResponse({ success: true });
   } catch (e) {
     const msg = e.message || String(e);
     const status = e.status >= 400 && e.status < 600 ? e.status : 500;
     return jsonResponse({ success: false, error: msg }, status);
   }
-}
-
-function recordsUtf8ToBase64(str) {
-  const bytes = new TextEncoder().encode(str);
-  let bin = "";
-  for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
-  return btoa(bin);
 }
 
 async function handleGetRecords(env) {
